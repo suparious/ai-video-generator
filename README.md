@@ -26,29 +26,29 @@ In any case, you will directly see the generated frames since it is next-frame(-
 
 On a Debian / Ubuntu system, install dev dependencies:
 
-    ```bash
-    sudo apt update
-    
-    sudo apt install build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev curl git libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
-    
-    sudo apt install python3-full python3-pip python3-wheel python3-venv
+```bash
+sudo apt update
 
-    sudo apt install libavutil-dev libavformat-dev libavcodec-dev libavdevice-dev libavfilter-dev libswscale-dev gfortran libopenblas-dev cmake libxsimd-dev
+sudo apt install build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev curl git libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
 
-    sudo apt install llvm
-    ```
+sudo apt install python3-full python3-pip python3-wheel python3-venv
+
+sudo apt install libavutil-dev libavformat-dev libavcodec-dev libavdevice-dev libavfilter-dev libswscale-dev gfortran libopenblas-dev cmake libxsimd-dev
+
+sudo apt install llvm
+```
 
 We recommend having an independent Python 3.13.
 
-    # Explicitly setup your torch ahead of the requirements, if you have special needs, such as ROCm or older / newer NVIDIA
-    `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128`
-    
-    # Then install requirements the normal way
-    `pip install -r requirements.txt`
+- Explicitly setup your torch ahead of the requirements, if you have special needs, such as ROCm or older / newer NVIDIA
+  `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128`
+
+- Then install requirements the normal way
+  `pip install -r requirements.txt`
 
 To start the GUI, run:
 
-    `python demo_gradio.py`
+`python demo_gradio.py`
 
 Note that it supports `--share`, `--port`, `--server`, and so on.
 
@@ -56,7 +56,7 @@ The software supports PyTorch attention, xformers, flash-attn, sage-attention. B
 
 For example, to install a specific version of sage-attention, comment it out from the `requirements.txt` and then run:
 
-    `pip install sageattention==1.0.6`
+`pip install sageattention==1.0.6`
 
 However, you are highly recommended to first try without sage-attention since it will influence results, though the influence is minimal.
 
@@ -80,17 +80,19 @@ Many people would ask how to write better prompts.
 
 Below is a ChatGPT template that I personally often use to get prompts:
 
-    You are an assistant that writes short, motion-focused prompts for animating images.
+```plaintext
+You are an assistant that writes short, motion-focused prompts for animating images.
 
-    When the user sends an image, respond with a single, concise prompt describing visual motion (such as human activity, moving objects, or camera movements). Focus only on how the scene could come alive and become dynamic using brief phrases.
+When the user sends an image, respond with a single, concise prompt describing visual motion (such as human activity, moving objects, or camera movements). Focus only on how the scene could come alive and become dynamic using brief phrases.
 
-    Larger and more dynamic motions (like dancing, jumping, running, etc.) are preferred over smaller or more subtle ones (like standing still, sitting, etc.).
+Larger and more dynamic motions (like dancing, jumping, running, etc.) are preferred over smaller or more subtle ones (like standing still, sitting, etc.).
 
-    Describe subject, then motion, then other things. For example: "The girl dances gracefully, with clear movements, full of charm."
+Describe subject, then motion, then other things. For example: "The girl dances gracefully, with clear movements, full of charm."
 
-    If there is something that can dance (like a man, girl, robot, etc.), then prefer to describe it as dancing.
+If there is something that can dance (like a man, girl, robot, etc.), then prefer to describe it as dancing.
 
-    Stay in a loop: one image in, one motion prompt out. Do not explain, ask questions, or generate multiple options.
+Stay in a loop: one image in, one motion prompt out. Do not explain, ask questions, or generate multiple options.
+```
 
 You paste the instruct to ChatGPT and then feed it an image to get prompt like this:
 
@@ -108,9 +110,9 @@ and so on.
 
 ## Citation
 
-    @article{zhang2025ai-video-generator,
-        title={Packing Input Frame Contexts in Next-Frame Prediction Models for Video Generation},
-        author={Lvmin Zhang and Maneesh Agrawala},
-        journal={Arxiv},
-        year={2025}
-    }
+@article{zhang2025ai-video-generator,
+title={Packing Input Frame Contexts in Next-Frame Prediction Models for Video Generation},
+author={Lvmin Zhang and Maneesh Agrawala},
+journal={Arxiv},
+year={2025}
+}
