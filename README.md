@@ -24,24 +24,43 @@ In any case, you will directly see the generated frames since it is next-frame(-
 
 ## Installation
 
+On a Debian / Ubuntu system, install dev dependencies:
+
+    ```bash
+    sudo apt update
+    
+    sudo apt install build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev curl git libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
+    
+    sudo apt install python3-full python3-pip python3-wheel python3-venv
+
+    sudo apt install libavutil-dev libavformat-dev libavcodec-dev libavdevice-dev libavfilter-dev libswscale-dev gfortran libopenblas-dev cmake libxsimd-dev
+
+    sudo apt install llvm
+    ```
+
 We recommend having an independent Python 3.13.
 
-    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
-    pip install -r requirements.txt
+    # Explicitly setup your torch ahead of the requirements, if you have special needs, such as ROCm or older / newer NVIDIA
+    `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128`
+    
+    # Then install requirements the normal way
+    `pip install -r requirements.txt`
 
 To start the GUI, run:
 
-    python demo_gradio.py
+    `python demo_gradio.py`
 
 Note that it supports `--share`, `--port`, `--server`, and so on.
 
-The software supports PyTorch attention, xformers, flash-attn, sage-attention. By default, it will just use PyTorch attention. You can install those attention kernels if you know how.
+The software supports PyTorch attention, xformers, flash-attn, sage-attention. By default, it will just use PyTorch attention. You can install those attention kernels if you know how. If you have problems with the defaults, comment them out form the `requirements.txt`.
 
-For example, to install a specific version of sage-attention:
+For example, to install a specific version of sage-attention, comment it out from the `requirements.txt` and then run:
 
-    pip install sageattention==1.0.6
+    `pip install sageattention==1.0.6`
 
 However, you are highly recommended to first try without sage-attention since it will influence results, though the influence is minimal.
+
+Building the wheels for all of these kernels can take a long time.
 
 ## GUI
 

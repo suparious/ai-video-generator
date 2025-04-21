@@ -14,6 +14,7 @@ einops
 opencv-contrib-python
 safetensors
 
+# Optional attention kernels
 xformers
 flash-attn
 triton
