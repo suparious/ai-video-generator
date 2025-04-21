@@ -112,9 +112,11 @@ and so on.
 
 ## Citation
 
+```bibtex
 @article{zhang2025ai_video_generator,
   title={Packing Input Frame Contexts in Next-Frame Prediction Models for Video Generation},
   author={Zhang, Lvmin and Agrawala, Maneesh},
   journal={arXiv preprint arXiv:2501.12345},
   year={2025}
 }
+```
