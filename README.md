@@ -1,12 +1,14 @@
-# ai-video-generator
+# FramePack AI Video Generator
 
-This ai-video-generator is a next-frame (next-frame-section) prediction neural network structure that generates videos progressively.
+FramePack is an advanced AI video generator based on next-frame prediction technology. It implements the architecture described in ["Packing Input Frame Context in Next-Frame Prediction Models for Video Generation"](https://arxiv.org/abs/2504.12626) (Zhang & Agrawala, 2025).
 
-The ai-video-generator compresses input contexts to a constant length so that the generation workload is invariant to video length.
+## Key Features
 
-The ai-video-generator can process a very large number of frames with 13B models even on laptop GPUs.
-
-ai-video-generator can be trained with a much larger batch size, similar to the batch size for image diffusion training.
+- **Progressive Video Generation**: Creates videos by predicting frames sequentially with inverted anti-drifting sampling
+- **Efficient Memory Usage**: Compresses input contexts to a constant length regardless of video length
+- **Laptop-Friendly**: Can process long videos with 13B models even on modest laptop GPUs (6GB VRAM)
+- **High Quality Results**: Produces temporally consistent, high-quality video animations from a single image
+- **Optimized for Hand Details**: Special mode to improve hand and fine detail quality
 
 ## Requirements
 
@@ -64,23 +66,79 @@ However, you are highly recommended to first try without sage-attention since it
 
 Building the wheels for all of these kernels can take a long time.
 
-## GUI
+## GUI Guide
 
-On the left you upload an image and write a prompt.
+### Basic Usage
 
-On the right are the generated videos and latent previews.
+1. **Upload an Image**: On the left side, upload a starting image for your video
+2. **Enter a Prompt**: Describe the motion or action you want the subject to perform
+3. **Select a Preset**: Choose from preset configurations optimized for different types of motion
+4. **Adjust Settings**: Fine-tune parameters as needed (or leave as default)
+5. **Start Generation**: Click "Start Generation" to begin the process
 
-Because this is a next-frame-section prediction model, videos will be generated longer and longer.
+### Advanced Features
 
-You will see the progress bar for each section and the latent preview for the next section.
+#### Preset Configurations
 
-Note that the initial progress may be slower than later diffusion as the device may need some warmup.
+The interface includes several presets optimized for different types of videos:
 
-## Prompting Guideline
+- **Default**: Balanced settings suitable for general use
+- **Dance**: Optimized for dance movements with TeaCache disabled for better hand details
+- **Talking**: Fine-tuned for facial expressions and talking animations
+- **Action**: Enhanced settings for dynamic movements and actions
+- **Subtle Movement**: Gentler settings for minimal, gradual movements
 
-Many people would ask how to write better prompts.
+#### TeaCache & Hand Optimization
 
-Below is a ChatGPT template that I personally often use to get prompts:
+TeaCache is a speed optimization technique that can make generation 1.5-2x faster, but may affect detail quality for hands and fingers. Two options are provided:
+
+- **Use TeaCache**: Enable for faster generation (recommended for most cases)
+- **Optimize for Hands/Details**: When enabled with TeaCache, this uses modified settings that better preserve fine details like hands and fingers while still maintaining speed benefits
+
+For videos with extensive hand movements or fine details, either disable TeaCache completely or enable Hand Optimization.
+
+#### Understanding the Generation Process
+
+This model uses inverted anti-drifting sampling, which means:
+
+1. The ending frames are generated first, followed by earlier frames
+2. Progress visualization shows the current section being generated
+3. The video will appear to be "filled in" from end to beginning
+4. Initial progress may be slower as the device warms up
+
+## Prompting Guidelines
+
+### Effective Prompt Structure
+
+For best results, use concise, motion-focused prompts that follow this structure:
+
+1. **Identify the subject** ("The person", "The woman", "The man")
+2. **Describe the motion** (dancing, talking, walking, etc.)
+3. **Add qualifiers** (gracefully, powerfully, slowly, etc.)
+4. **Optional details** (environment, mood, style)
+
+### Example Prompts by Category
+
+**Dance Movements:**
+- "The person dances gracefully, with clear movements, full of charm."
+- "The person performs a spinning motion with arms extended."
+
+**Talking/Expressions:**
+- "The person talks animatedly, using hand gestures to emphasize points."
+- "The person smiles and nods, maintaining eye contact."
+
+**Hand-Focused Actions:**
+- "The person plays an invisible piano with detailed finger movements."
+- "The person waves hello with a friendly smile."
+- "The person gestures with hands while explaining a concept."
+
+**Subtle Movements:**
+- "The person makes subtle movements, with a calm expression."
+- "The person breathes slowly, barely moving, with a peaceful demeanor."
+
+### AI-Assisted Prompting
+
+You can use this ChatGPT template to generate effective prompts from images:
 
 ```plaintext
 You are an assistant that writes short, motion-focused prompts for animating images.
@@ -89,34 +147,51 @@ When the user sends an image, respond with a single, concise prompt describing v
 
 Larger and more dynamic motions (like dancing, jumping, running, etc.) are preferred over smaller or more subtle ones (like standing still, sitting, etc.).
 
-Describe subject, then motion, then other things. For example: "The girl dances gracefully, with clear movements, full of charm."
+Describe subject, then motion, then other things. For example: "The person dances gracefully, with clear movements, full of charm."
 
 If there is something that can dance (like a man, girl, robot, etc.), then prefer to describe it as dancing.
 
 Stay in a loop: one image in, one motion prompt out. Do not explain, ask questions, or generate multiple options.
 ```
 
-You paste the instruct to ChatGPT and then feed it an image to get prompt like this:
+### Tips for Specific Scenarios
 
-_The man dances powerfully, striking sharp poses and gliding smoothly across the reflective floor._
+- **For hand/finger movements**: Use explicit hand-related descriptions and disable TeaCache or enable Hand Optimization
+- **For smoother videos**: Use longer prompts that describe the motion flow from start to finish
+- **For complex actions**: Break down the motion into simple components
 
-Usually this will give you a prompt that works well.
+## Advanced Settings Guide
 
-You can also write prompts yourself. Concise prompts are usually preferred, for example:
+### Performance Settings
 
-_The girl dances gracefully, with clear movements, full of charm._
+- **TeaCache**: Speeds up generation by 1.5-2x. May slightly reduce detail quality in hands and fine features.
+- **Hand Optimization**: When used with TeaCache, this increases the TeaCache threshold to better preserve fine details.
+- **GPU Memory Preservation**: Increase this value if you encounter Out-of-Memory errors. Higher values mean slower processing but less chance of memory issues.
+- **MP4 Compression Quality**: Controls the compression of the output video. Lower values (15-20) offer good quality with reasonable file sizes.
 
-_The man dances powerfully, with clear movements, full of energy._
+### Generation Settings
 
-and so on.
+- **Diffusion Steps**: More steps generally produce higher quality results at the cost of generation time. 25-30 is recommended for most purposes.
+- **Guidance Scale**: Controls how strongly the generation follows the prompt. Higher values (10-15) give stronger adherence to the prompt but may reduce naturalness.
+- **Total Video Length**: Sets the target length of the final video. Longer videos take proportionally more time to generate.
+
+## Troubleshooting
+
+### Common Issues
+
+- **Poor Hand/Finger Detail**: Disable TeaCache or enable Hand Optimization
+- **Out of Memory Errors**: Increase GPU Memory Preservation value
+- **Black Video Output**: Try changing MP4 Compression to 16 if you see black output videos
+- **Missing Beginning of Video**: Be patient! Due to inverted sampling, the beginning is generated last
+- **Slow Generation**: This is normal for the first few frames as models load and optimize
 
 ## Citation
 
 ```bibtex
-@article{zhang2025ai_video_generator,
+@article{zhang2025framepack,
   title={Packing Input Frame Contexts in Next-Frame Prediction Models for Video Generation},
   author={Zhang, Lvmin and Agrawala, Maneesh},
-  journal={arXiv preprint arXiv:2501.12345},
+  journal={arXiv preprint arXiv:2504.12626},
   year={2025}
 }
 ```

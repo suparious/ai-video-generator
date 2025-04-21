@@ -1,8 +1,14 @@
 from diffusers_helper.hf_login import login
 
 import os
+from config import PRESET_CONFIGS, EXAMPLE_PROMPTS, TEACACHE_CONFIG, DEFAULT_UI_SETTINGS
 
 os.environ['HF_HOME'] = os.path.abspath(os.path.realpath(os.path.join(os.path.dirname(__file__), './hf_download')))
+
+# Set up paths
+ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
+STATIC_DIR = os.path.join(ROOT_DIR, 'static')
+OUTPUTS_DIR = os.path.join(ROOT_DIR, 'outputs')
 
 import gradio as gr
 import torch
@@ -23,6 +29,7 @@ from diffusers_helper.pipelines.k_diffusion_hunyuan import sample_hunyuan
 from diffusers_helper.memory import cpu, gpu, get_cuda_free_memory_gb, move_model_to_device_with_memory_preservation, offload_model_from_device_for_memory_preservation, fake_diffusers_current_device, DynamicSwapInstaller, unload_complete_models, load_model_as_complete
 from diffusers_helper.thread_utils import AsyncStream, async_run
 from diffusers_helper.gradio.progress_bar import make_progress_bar_css, make_progress_bar_html
+from diffusers_helper.gradio.enhanced_progress_bar import get_enhanced_progress_bar_css, make_enhanced_progress_bar_html
 from transformers import SiglipImageProcessor, SiglipVisionModel
 from diffusers_helper.clip_vision import hf_clip_vision_encode
 from diffusers_helper.bucket_tools import find_nearest_bucket
@@ -95,18 +102,18 @@ else:
 
 stream = AsyncStream()
 
-outputs_folder = './outputs/'
-os.makedirs(outputs_folder, exist_ok=True)
+os.makedirs(OUTPUTS_DIR, exist_ok=True)
+os.makedirs(STATIC_DIR, exist_ok=True)
 
 
 @torch.no_grad()
-def worker(input_image, prompt, n_prompt, seed, total_second_length, latent_window_size, steps, cfg, gs, rs, gpu_memory_preservation, use_teacache, mp4_crf):
+def worker(input_image, prompt, n_prompt, seed, total_second_length, latent_window_size, steps, cfg, gs, rs, gpu_memory_preservation, use_teacache, hand_optimization, mp4_crf):
     total_latent_sections = (total_second_length * 30) / (latent_window_size * 4)
     total_latent_sections = int(max(round(total_latent_sections), 1))
 
     job_id = generate_timestamp()
 
-    stream.output_queue.push(('progress', (None, '', make_progress_bar_html(0, 'Starting ...'))))
+    stream.output_queue.push(('progress', (None, '', make_enhanced_progress_bar_html(0, 'Starting ...'))))
 
     try:
         # Clean GPU
@@ -117,7 +124,7 @@ def worker(input_image, prompt, n_prompt, seed, total_second_length, latent_wind
 
         # Text encoding
 
-        stream.output_queue.push(('progress', (None, '', make_progress_bar_html(0, 'Text encoding ...'))))
+        stream.output_queue.push(('progress', (None, '', make_enhanced_progress_bar_html(0, 'Text encoding ...'))))
 
         if not high_vram:
             fake_diffusers_current_device(text_encoder, gpu)  # since we only encode one text - that is one model move and one encode, offload is same time consumption since it is also one load and one encode.
@@ -135,20 +142,20 @@ def worker(input_image, prompt, n_prompt, seed, total_second_length, latent_wind
 
         # Processing input image
 
-        stream.output_queue.push(('progress', (None, '', make_progress_bar_html(0, 'Image processing ...'))))
+        stream.output_queue.push(('progress', (None, '', make_enhanced_progress_bar_html(0, 'Image processing ...'))))
 
         H, W, C = input_image.shape
         height, width = find_nearest_bucket(H, W, resolution=640)
         input_image_np = resize_and_center_crop(input_image, target_width=width, target_height=height)
 
-        Image.fromarray(input_image_np).save(os.path.join(outputs_folder, f'{job_id}.png'))
+        Image.fromarray(input_image_np).save(os.path.join(OUTPUTS_DIR, f'{job_id}.png'))
 
         input_image_pt = torch.from_numpy(input_image_np).float() / 127.5 - 1
         input_image_pt = input_image_pt.permute(2, 0, 1)[None, :, None]
 
         # VAE encoding
 
-        stream.output_queue.push(('progress', (None, '', make_progress_bar_html(0, 'VAE encoding ...'))))
+        stream.output_queue.push(('progress', (None, '', make_enhanced_progress_bar_html(0, 'VAE encoding ...'))))
 
         if not high_vram:
             load_model_as_complete(vae, target_device=gpu)
@@ -157,7 +164,7 @@ def worker(input_image, prompt, n_prompt, seed, total_second_length, latent_wind
 
         # CLIP Vision
 
-        stream.output_queue.push(('progress', (None, '', make_progress_bar_html(0, 'CLIP Vision encoding ...'))))
+        stream.output_queue.push(('progress', (None, '', make_enhanced_progress_bar_html(0, 'CLIP Vision encoding ...'))))
 
         if not high_vram:
             load_model_as_complete(image_encoder, target_device=gpu)
@@ -175,7 +182,7 @@ def worker(input_image, prompt, n_prompt, seed, total_second_length, latent_wind
 
         # Sampling
 
-        stream.output_queue.push(('progress', (None, '', make_progress_bar_html(0, 'Start sampling ...'))))
+        stream.output_queue.push(('progress', (None, '', make_enhanced_progress_bar_html(0, 'Start sampling ...'))))
 
         rnd = torch.Generator("cpu").manual_seed(seed)
         num_frames = latent_window_size * 4 - 3
@@ -215,10 +222,22 @@ def worker(input_image, prompt, n_prompt, seed, total_second_length, latent_wind
                 unload_complete_models()
                 move_model_to_device_with_memory_preservation(transformer, target_device=gpu, preserved_memory_gb=gpu_memory_preservation)
 
+            # Handle TeaCache settings based on user preferences
+            # If hand optimization is enabled and TeaCache is enabled, we use modified TeaCache settings
             if use_teacache:
-                transformer.initialize_teacache(enable_teacache=True, num_steps=steps)
+                if hand_optimization:
+                    # Use the hand-optimized threshold from config
+                    rel_l1_thresh = TEACACHE_CONFIG["hand_optimized"]["rel_l1_thresh"]
+                    transformer.initialize_teacache(enable_teacache=True, num_steps=steps, rel_l1_thresh=rel_l1_thresh)
+                    print(f"TeaCache enabled with hand optimization (rel_l1_thresh={rel_l1_thresh})")
+                else:
+                    # Use standard TeaCache settings from config
+                    rel_l1_thresh = TEACACHE_CONFIG["standard"]["rel_l1_thresh"]
+                    transformer.initialize_teacache(enable_teacache=True, num_steps=steps, rel_l1_thresh=rel_l1_thresh)
+                    print(f"TeaCache enabled with standard settings (rel_l1_thresh={rel_l1_thresh})")
             else:
                 transformer.initialize_teacache(enable_teacache=False)
+                print("TeaCache disabled")
 
             def callback(d):
                 preview = d['denoised']
@@ -235,7 +254,7 @@ def worker(input_image, prompt, n_prompt, seed, total_second_length, latent_wind
                 percentage = int(100.0 * current_step / steps)
                 hint = f'Sampling {current_step}/{steps}'
                 desc = f'Total generated frames: {int(max(0, total_generated_latent_frames * 4 - 3))}, Video length: {max(0, (total_generated_latent_frames * 4 - 3) / 30) :.2f} seconds (FPS-30). The video is being extended now ...'
-                stream.output_queue.push(('progress', (preview, desc, make_progress_bar_html(percentage, hint))))
+                stream.output_queue.push(('progress', (preview, desc, make_enhanced_progress_bar_html(percentage, hint))))
                 return
 
             generated_latents = sample_hunyuan(
@@ -293,7 +312,7 @@ def worker(input_image, prompt, n_prompt, seed, total_second_length, latent_wind
             if not high_vram:
                 unload_complete_models()
 
-            output_filename = os.path.join(outputs_folder, f'{job_id}_{total_generated_latent_frames}.mp4')
+            output_filename = os.path.join(OUTPUTS_DIR, f'{job_id}_{total_generated_latent_frames}.mp4')
 
             save_bcthw_as_mp4(history_pixels, output_filename, fps=30, crf=mp4_crf)
 
@@ -315,7 +334,7 @@ def worker(input_image, prompt, n_prompt, seed, total_second_length, latent_wind
     return
 
 
-def process(input_image, prompt, n_prompt, seed, total_second_length, latent_window_size, steps, cfg, gs, rs, gpu_memory_preservation, use_teacache, mp4_crf):
+def process(input_image, prompt, n_prompt, seed, total_second_length, latent_window_size, steps, cfg, gs, rs, gpu_memory_preservation, use_teacache, hand_optimization, mp4_crf):
     global stream
     assert input_image is not None, 'No input image!'
 
@@ -323,7 +342,7 @@ def process(input_image, prompt, n_prompt, seed, total_second_length, latent_win
 
     stream = AsyncStream()
 
-    async_run(worker, input_image, prompt, n_prompt, seed, total_second_length, latent_window_size, steps, cfg, gs, rs, gpu_memory_preservation, use_teacache, mp4_crf)
+    async_run(worker, input_image, prompt, n_prompt, seed, total_second_length, latent_window_size, steps, cfg, gs, rs, gpu_memory_preservation, use_teacache, hand_optimization, mp4_crf)
 
     output_filename = None
 
@@ -347,17 +366,30 @@ def end_process():
     stream.input_queue.push('end')
 
 
-quick_prompts = [
-    'The girl dances gracefully, with clear movements, full of charm.',
-    'A character doing some simple body movements.',
-]
-quick_prompts = [[x] for x in quick_prompts]
+# Quick prompts are loaded from config.py
+quick_prompts = [[x] for x in EXAMPLE_PROMPTS]
 
 
-css = make_progress_bar_css()
+# Combine progress bar CSS with custom CSS
+custom_css_path = os.path.join(STATIC_DIR, 'custom.css')
+custom_css = """
+"""
+
+# Try to read custom CSS file if it exists
+if os.path.exists(custom_css_path):
+    try:
+        with open(custom_css_path, 'r') as f:
+            custom_css = f.read()
+    except Exception as e:
+        print(f"Could not read custom CSS file: {e}")
+
+# Combine CSS
+css = make_progress_bar_css() + get_enhanced_progress_bar_css() + custom_css
+
+# Create Gradio interface
 block = gr.Blocks(css=css).queue()
 with block:
-    gr.Markdown('# FramePack')
+    gr.Markdown('# FramePack AI Video Generator')
     with gr.Row():
         with gr.Column():
             input_image = gr.Image(sources='upload', type="numpy", label="Image", height=320)
@@ -366,26 +398,113 @@ with block:
             example_quick_prompts.click(lambda x: x[0], inputs=[example_quick_prompts], outputs=prompt, show_progress=False, queue=False)
 
             with gr.Row():
-                start_button = gr.Button(value="Start Generation")
-                end_button = gr.Button(value="End Generation", interactive=False)
+            with gr.Column(scale=4):
+                start_button = gr.Button(value="Start Generation", variant="primary")
+            with gr.Column(scale=2):
+                end_button = gr.Button(value="End Generation", interactive=False, variant="stop")
 
             with gr.Group():
-                use_teacache = gr.Checkbox(label='Use TeaCache', value=True, info='Faster speed, but often makes hands and fingers slightly worse.')
-
-                n_prompt = gr.Textbox(label="Negative Prompt", value="", visible=False)  # Not used
-                seed = gr.Number(label="Seed", value=31337, precision=0)
-
-                total_second_length = gr.Slider(label="Total Video Length (Seconds)", minimum=1, maximum=120, value=5, step=0.1)
-                latent_window_size = gr.Slider(label="Latent Window Size", minimum=1, maximum=33, value=9, step=1, visible=False)  # Should not change
-                steps = gr.Slider(label="Steps", minimum=1, maximum=100, value=25, step=1, info='Changing this value is not recommended.')
-
-                cfg = gr.Slider(label="CFG Scale", minimum=1.0, maximum=32.0, value=1.0, step=0.01, visible=False)  # Should not change
-                gs = gr.Slider(label="Distilled CFG Scale", minimum=1.0, maximum=32.0, value=10.0, step=0.01, info='Changing this value is not recommended.')
-                rs = gr.Slider(label="CFG Re-Scale", minimum=0.0, maximum=1.0, value=0.0, step=0.01, visible=False)  # Should not change
-
-                gpu_memory_preservation = gr.Slider(label="GPU Inference Preserved Memory (GB) (larger means slower)", minimum=6, maximum=128, value=6, step=0.1, info="Set this number to a larger value if you encounter OOM. Larger value causes slower speed.")
-
-                mp4_crf = gr.Slider(label="MP4 Compression", minimum=0, maximum=100, value=16, step=1, info="Lower means better quality. 0 is uncompressed. Change to 16 if you get black outputs. ")
+                with gr.Accordion("Presets", open=True):
+                    preset_dropdown = gr.Dropdown(
+                        label="Preset Configurations", 
+                        choices=list(PRESET_CONFIGS.keys()), 
+                        value="Default",
+                        info="Select a preset to automatically configure parameters for specific types of videos",
+                        elem_id="preset_dropdown"
+                    )
+                
+                with gr.Accordion("Basic Settings", open=True):
+                    n_prompt = gr.Textbox(label="Negative Prompt", value="", visible=False)  # Not used
+                    seed = gr.Number(
+                        label="Seed", 
+                        value=DEFAULT_UI_SETTINGS["seed"], 
+                        precision=0, 
+                        info="Random seed for generation. Use the same seed to get consistent results."
+                    )
+                    total_second_length = gr.Slider(
+                        label="Total Video Length (Seconds)", 
+                        minimum=1, 
+                        maximum=120, 
+                        value=DEFAULT_UI_SETTINGS["total_second_length"], 
+                        step=0.1,
+                        info="Length of the generated video in seconds. Longer videos take more time to generate."
+                    )
+                    latent_window_size = gr.Slider(
+                        label="Latent Window Size", 
+                        minimum=1, 
+                        maximum=33, 
+                        value=DEFAULT_UI_SETTINGS["latent_window_size"], 
+                        step=1, 
+                        visible=False
+                    )  # Should not change
+                
+                with gr.Accordion("Performance Settings", open=False):
+                    with gr.Row():
+                        use_teacache = gr.Checkbox(
+                            label='Use TeaCache', 
+                            value=DEFAULT_UI_SETTINGS["use_teacache"], 
+                            info='Speeds up generation by 1.5-2x, but may affect detail quality in some cases.'
+                        )
+                        hand_optimization = gr.Checkbox(
+                            label='Optimize for Hands/Details', 
+                            value=DEFAULT_UI_SETTINGS["hand_optimization"], 
+                            info='Improves hand and fine detail quality but slightly reduces speed when TeaCache is enabled.'
+                        )
+                    
+                    gpu_memory_preservation = gr.Slider(
+                        label="GPU Memory Preservation (GB)", 
+                        minimum=6, 
+                        maximum=128, 
+                        value=DEFAULT_UI_SETTINGS["gpu_memory_preservation"], 
+                        step=0.1, 
+                        info="Increase this value if you encounter Out-of-Memory errors. Higher values reduce speed."
+                    )
+                    
+                    mp4_crf = gr.Slider(
+                        label="MP4 Compression Quality", 
+                        minimum=0, 
+                        maximum=50, 
+                        value=DEFAULT_UI_SETTINGS["mp4_crf"], 
+                        step=1, 
+                        info="Lower values mean higher quality video. 0 is uncompressed. Values between 15-25 are recommended."
+                    )
+                
+                with gr.Accordion("Advanced Generation Settings", open=False):
+                    steps = gr.Slider(
+                        label="Diffusion Steps", 
+                        minimum=10, 
+                        maximum=100, 
+                        value=DEFAULT_UI_SETTINGS["steps"], 
+                        step=1, 
+                        info='Higher values generally improve quality but increase generation time. 20-30 is a good range.'
+                    )
+                    
+                    cfg = gr.Slider(
+                        label="CFG Scale", 
+                        minimum=1.0, 
+                        maximum=32.0, 
+                        value=DEFAULT_UI_SETTINGS["cfg"], 
+                        step=0.01, 
+                        visible=False
+                    )  # Should not change
+                    
+                    gs = gr.Slider(
+                        label="Guidance Scale", 
+                        minimum=1.0, 
+                        maximum=32.0, 
+                        value=DEFAULT_UI_SETTINGS["gs"], 
+                        step=0.1, 
+                        info='Controls how closely output follows prompt. Higher values give stronger prompt adherence but may reduce naturalness.'
+                    )
+                    
+                    rs = gr.Slider(
+                        label="CFG Re-Scale", 
+                        minimum=0.0, 
+                        maximum=1.0, 
+                        value=DEFAULT_UI_SETTINGS["rs"], 
+                        step=0.01, 
+                        visible=False
+                    )  # Should not change
 
         with gr.Column():
             preview_image = gr.Image(label="Next Latents", height=200, visible=False)
@@ -393,12 +512,54 @@ with block:
             gr.Markdown('Note that the ending actions will be generated before the starting actions due to the inverted sampling. If the starting action is not in the video, you just need to wait, and it will be generated later.')
             progress_desc = gr.Markdown('', elem_classes='no-generating-animation')
             progress_bar = gr.HTML('', elem_classes='no-generating-animation')
+            
+            with gr.Accordion("Help & Tips", open=False, elem_id="help_tips"):
+                gr.Markdown("""
+                ### Tips for Better Results
+                
+                - **For hand movements**: Disable TeaCache or enable Hand Optimization for better quality with hands and detailed movements
+                - **For talking faces**: Use the "Talking" preset which is optimized for facial expressions
+                - **For smoother videos**: Try increasing Steps to 30-35 for higher quality, but this will increase generation time
+                - **For memory issues**: If you encounter Out-of-Memory errors, increase the GPU Memory Preservation value
+                - **Seed control**: Use the same seed value to get consistent results across multiple generations
+                
+                ### About Inverted Sampling
+                The ending actions will be generated before the starting actions due to inverted sampling. If the beginning of your video isn't visible yet, just wait - it will be generated later in the process.
+                """)
 
     gr.HTML('<div style="text-align:center; margin-top:20px;">Share your results and find ideas at the <a href="https://x.com/search?q=framepack&f=live" target="_blank">FramePack Twitter (X) thread</a></div>')
 
-    ips = [input_image, prompt, n_prompt, seed, total_second_length, latent_window_size, steps, cfg, gs, rs, gpu_memory_preservation, use_teacache, mp4_crf]
+    ips = [input_image, prompt, n_prompt, seed, total_second_length, latent_window_size, steps, cfg, gs, rs, gpu_memory_preservation, use_teacache, hand_optimization, mp4_crf]
     start_button.click(fn=process, inputs=ips, outputs=[result_video, preview_image, progress_desc, progress_bar, start_button, end_button])
     end_button.click(fn=end_process)
+    
+    # Function to apply preset configurations
+    def apply_preset(preset_name):
+        preset = PRESET_CONFIGS.get(preset_name, PRESET_CONFIGS["Default"])
+        return [
+            gr.update(value=preset["prompt"]),  # prompt
+            gr.update(),  # n_prompt (no change)
+            gr.update(),  # seed (no change)
+            gr.update(),  # total_second_length (no change)
+            gr.update(),  # latent_window_size (no change)
+            gr.update(value=preset["steps"]),  # steps
+            gr.update(),  # cfg (no change)
+            gr.update(value=preset["gs"]),  # gs
+            gr.update(),  # rs (no change)
+            gr.update(value=preset["gpu_memory_preservation"]),  # gpu_memory_preservation
+            gr.update(value=preset["use_teacache"]),  # use_teacache
+            # Enable hand optimization for certain presets that need it
+            gr.update(value=not preset["use_teacache"]),  # If TeaCache is disabled, no need for hand optimization
+            gr.update()   # mp4_crf (no change)
+        ]
+    
+    # Connect the preset dropdown to update the parameters
+    preset_dropdown.change(
+        fn=apply_preset,
+        inputs=[preset_dropdown],
+        outputs=[prompt, n_prompt, seed, total_second_length, latent_window_size, 
+                steps, cfg, gs, rs, gpu_memory_preservation, use_teacache, hand_optimization, mp4_crf]
+    )
 
 
 block.launch(

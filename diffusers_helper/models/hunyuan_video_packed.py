@@ -816,13 +816,27 @@ class HunyuanVideoTransformer3DModelPacked(ModelMixin, ConfigMixin, PeftAdapterM
         print('self.use_gradient_checkpointing = False')
 
     def initialize_teacache(self, enable_teacache=True, num_steps=25, rel_l1_thresh=0.15):
+        """
+        Initialize TeaCache for optimized inference.
+        
+        Args:
+            enable_teacache (bool): Whether to enable TeaCache optimization
+            num_steps (int): Number of diffusion steps
+            rel_l1_thresh (float): Relative L1 threshold for TeaCache
+                - Lower values (0.1) provide more speedup (≈1.6x) but may reduce quality
+                - Medium values (0.15) balance speed (≈2.1x) and quality
+                - Higher values (0.25+) prioritize quality especially for detailed regions like hands
+        """
         self.enable_teacache = enable_teacache
         self.cnt = 0
         self.num_steps = num_steps
-        self.rel_l1_thresh = rel_l1_thresh  # 0.1 for 1.6x speedup, 0.15 for 2.1x speedup
+        self.rel_l1_thresh = rel_l1_thresh
         self.accumulated_rel_l1_distance = 0
         self.previous_modulated_input = None
         self.previous_residual = None
+        
+        # Polynomial rescaling function to adjust sensitivity
+        # Can be tuned for different detail preservation needs
         self.teacache_rescale_func = np.poly1d([7.33226126e+02, -4.01131952e+02, 6.75869174e+01, -3.14987800e+00, 9.61237896e-02])
 
     def gradient_checkpointing_method(self, block, *args):

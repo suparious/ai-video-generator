@@ -1,0 +1,116 @@
+/* FramePack Custom CSS */
+
+/* Main container styling */
+body {
+    background-color: #f5f7fa;
+}
+
+/* Title styling */
+h1.gr-text.gr-h1.gr-h1-title {
+    font-size: 2.5rem !important;
+    font-weight: 700 !important;
+    text-align: center;
+    margin-bottom: 1.5rem !important;
+    color: #1f2937;
+    padding: 0.5rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+/* Button styling */
+button.gr-button.gr-button-lg {
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+button.gr-button-primary {
+    background-color: #4f46e5 !important;
+    border-color: #4338ca !important;
+}
+
+button.gr-button-primary:hover {
+    background-color: #4338ca !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+button.gr-button-stop {
+    background-color: #ef4444 !important;
+    border-color: #dc2626 !important;
+}
+
+button.gr-button-stop:hover {
+    background-color: #dc2626 !important;
+}
+
+/* Accordion styling */
+.gr-form > div.gr-block.gr-box.gr-block-accordion {
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.gr-form > div.gr-block.gr-box.gr-block-accordion[open] {
+    border-color: #d1d5db;
+}
+
+.gr-form > div.gr-block.gr-box.gr-block-accordion > .gr-subtitle {
+    background-color: #f9fafb;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* Preset dropdown styling */
+#preset_dropdown {
+    border: 2px solid #d1d5db;
+    border-radius: 0.5rem;
+}
+
+/* Progress bar styling */
+.progress-bar-wrapper {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.progress-bar {
+    height: 1.25rem;
+    background: linear-gradient(90deg, #4f46e5 0%, #8b5cf6 100%);
+    transition: width 0.3s ease;
+}
+
+/* Slider styling */
+input[type=range] {
+    height: 0.5rem;
+    border-radius: 0.25rem;
+}
+
+input[type=range]::-webkit-slider-thumb {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 50%;
+    background: #4f46e5;
+    cursor: pointer;
+}
+
+/* Help tips styling */
+#help_tips .gr-prose {
+    background-color: #f0f9ff;
+    border-left: 4px solid #0ea5e9;
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+#help_tips h3 {
+    color: #0369a1;
+    font-size: 1.25rem;
+    margin-top: 0;
+}
+
+/* Video output styling */
+.gr-video-component {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
