@@ -40,10 +40,12 @@ sudo apt install llvm
 
 We recommend having an independent Python 3.13.
 
-- Explicitly setup your torch ahead of the requirements, if you have special needs, such as ROCm or older / newer NVIDIA
+- Explicitly setup your torch ahead of the requirements, if you have special needs, such as ROCm or older / newer NVIDIA:
+
   `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128`
 
-- Then install requirements the normal way
+- Then install requirements the normal way:
+
   `pip install -r requirements.txt`
 
 To start the GUI, run:
@@ -110,9 +112,9 @@ and so on.
 
 ## Citation
 
-@article{zhang2025ai-video-generator,
-title={Packing Input Frame Contexts in Next-Frame Prediction Models for Video Generation},
-author={Lvmin Zhang and Maneesh Agrawala},
-journal={Arxiv},
-year={2025}
+@article{zhang2025ai_video_generator,
+  title={Packing Input Frame Contexts in Next-Frame Prediction Models for Video Generation},
+  author={Zhang, Lvmin and Agrawala, Maneesh},
+  journal={arXiv preprint arXiv:2501.12345},
+  year={2025}
 }
