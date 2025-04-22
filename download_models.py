@@ -18,6 +18,8 @@ parser.add_argument('--hf-home', type=str, default='./hf_download',
                     help='Path to Hugging Face cache directory')
 parser.add_argument('--token', type=str,
                     help='Hugging Face token (defaults to HF_TOKEN environment variable if set)')
+parser.add_argument('--validate-only', action='store_true',
+                    help='Only validate that models exist in cache without loading them')
 args = parser.parse_args()
 
 # Set environment variables
@@ -39,66 +41,71 @@ else:
 # Create directories
 Path(os.environ['HF_HOME']).mkdir(parents=True, exist_ok=True)
 
-# Import after setting HF_HOME
+# Import libraries
 try:
-    from diffusers import AutoencoderKLHunyuanVideo
-    from transformers import (
-        LlamaModel, CLIPTextModel, LlamaTokenizerFast, CLIPTokenizer,
-        SiglipImageProcessor, SiglipVisionModel
-    )
+    import huggingface_hub
+    from transformers.utils import cached_file
+    from diffusers.utils import cached_file as diffusers_cached_file
 except ImportError:
-    print("Error: Required packages not installed. Please run:")
-    print("pip install diffusers transformers")
+    print("Error: Required packages not installed. Please install according to README.md")
     sys.exit(1)
 
-print("Starting model downloads...")
+# Load the needed imports only if we're not just validating
+if not args.validate_only:
+    try:
+        from diffusers import AutoencoderKLHunyuanVideo
+        from transformers import (
+            LlamaModel, CLIPTextModel, LlamaTokenizerFast, CLIPTokenizer,
+            SiglipImageProcessor, SiglipVisionModel
+        )
+    except ImportError:
+        print("Error: Required packages not installed. Please install according to README.md")
+        sys.exit(1)
 
-# Download models - using same paths as in demo_gradio.py
-models_to_download = [
-    ("hunyuanvideo-community/HunyuanVideo", [
-        ("tokenizer", LlamaTokenizerFast), 
-        ("tokenizer_2", CLIPTokenizer),
-        ("text_encoder", LlamaModel),
-        ("text_encoder_2", CLIPTextModel),
-        ("vae", AutoencoderKLHunyuanVideo)
-    ]),
-    ("Suparious/FLUX.1-Redux-dev-adaptor-bfl", [
-        ("feature_extractor", SiglipImageProcessor),
-        ("image_encoder", SiglipVisionModel)
-    ]),
-    ("Suparious/FP-image-to-video-FLUX.1-HV-bf16", [])
+print("Starting model validation/download...")
+
+# Model repository paths
+models_to_validate = [
+    "hunyuanvideo-community/HunyuanVideo",
+    "Suparious/FLUX.1-Redux-dev-adaptor-bfl",
+    "Suparious/FP-image-to-video-FLUX.1-HV-bf16"
 ]
 
-for model_name, components in models_to_download:
-    print(f"\nDownloading {model_name}...")
-    
-    if not components:
-        # For the transformer model, we just preload it without subfolder
-        try:
-            from diffusers_helper.models.hunyuan_video_packed import HunyuanVideoTransformer3DModelPacked
-            # Use token if available
-            if token:
-                transformer = HunyuanVideoTransformer3DModelPacked.from_pretrained(
-                    model_name, use_auth_token=token
-                )
-            else:
-                transformer = HunyuanVideoTransformer3DModelPacked.from_pretrained(model_name)
-            print(f"✓ Successfully downloaded {model_name}")
-        except Exception as e:
-            print(f"⚠ Error downloading {model_name}: {e}")
-    else:
-        for subfolder, model_class in components:
-            try:
-                # Use token if available
-                if token:
-                    model = model_class.from_pretrained(
-                        model_name, subfolder=subfolder, use_auth_token=token
-                    )
-                else:
-                    model = model_class.from_pretrained(model_name, subfolder=subfolder)
-                print(f"✓ Successfully downloaded {model_name}/{subfolder}")
-            except Exception as e:
-                print(f"⚠ Error downloading {model_name}/{subfolder}: {e}")
+# Function to validate/download model files without loading them into VRAM
+def validate_or_download_model(repo_id, token=None):
+    print(f"\nValidating/downloading {repo_id}...")
+    try:
+        # Check if the model exists by trying to get the model info
+        # This will trigger a download if not in cache
+        model_info = huggingface_hub.model_info(repo_id, token=token)
+        print(f"✓ Model {repo_id} exists in hub")
+        
+        # Verify snapshots directory exists in cache
+        repo_cache_path = huggingface_hub.snapshot_download(
+            repo_id=repo_id, 
+            token=token,
+            local_files_only=args.validate_only  # Only use local files in validate mode
+        )
+        print(f"✓ Model files for {repo_id} {'verified in' if args.validate_only else 'downloaded to'} cache: {repo_cache_path}")
+        return True
+    except Exception as e:
+        print(f"⚠ Error with {repo_id}: {e}")
+        if args.validate_only:
+            print(f"  The model may not be in your cache. Try running without --validate-only to download it.")
+        return False
 
-print("\nAll models downloaded successfully!")
-print("You can now run the Docker container with pre-downloaded models.")
+# Check each model
+success = True
+for model_path in models_to_validate:
+    if not validate_or_download_model(model_path, token):
+        success = False
+
+if success:
+    print("\nAll models successfully validated/downloaded!")
+    print("You can now run the Docker container with these pre-downloaded models.")
+else:
+    print("\nSome models could not be validated or downloaded.")
+    if args.validate_only:
+        print("Try running without --validate-only to download missing models.")
+    else:
+        print("Check your internet connection and HF_TOKEN if provided.")
