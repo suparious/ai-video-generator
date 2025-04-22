@@ -1,5 +1,10 @@
-hf_download/
-outputs/
+# Ephemeral directories (keep the directories but ignore their contents)
+wheels/*
+!wheels/.gitkeep
+hf_download/*
+!hf_download/.gitkeep
+outputs/*
+!outputs/.gitkeep
 repo/
 
 # Byte-compiled / optimized / DLL files

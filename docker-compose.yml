@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  ai-video-generator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ai-video-generator:latest
+    container_name: ai-video-generator
+    restart: unless-stopped
+    ports:
+      - "7860:7860"
+    volumes:
+      # Mount the outputs directory to persist generated videos
+      - ./outputs:/app/outputs
+      # Mount the HF cache directory to avoid downloading models on every run
+      - ./hf_download:/app/hf_download
+      # Optionally mount the static directory for custom CSS
+      - ./static:/app/static
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    # You can customize the Gradio server parameters here if needed
+    command: python demo_gradio.py --server 0.0.0.0 --port 7860

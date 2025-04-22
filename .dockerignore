@@ -1,0 +1,62 @@
+# Git
+.git
+.gitignore
+.github
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Virtual environment
+venv/
+ENV/
+env/
+.env
+
+# Common directories to exclude
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Output files that are generated within the container
+outputs/*
+!outputs/.gitkeep
+
+# Don't exclude wheels - we need these
+# !wheels/
+
+# Large model files (optional, you might want to download these at runtime)
+# *.safetensors
+# *.ckpt
+# *.pth
+# *.bin
+
+# Editor specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Documentation
+README.md
+ROADMAP.md
+LICENSE
+IMPROVEMENTS.md
+DOCKER.md
