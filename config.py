@@ -1,3 +1,7 @@
+"""
+Configuration settings for FramePack AI Video Generator
+"""
+
 # Flow shift configurations
 FLOW_SHIFT_CONFIGS = {
     "standard": {
@@ -18,9 +22,7 @@ FLOW_SHIFT_CONFIGS = {
     "hand_detail": {
         "flow_preset": "Hand Detail"
     }
-}"""
-Configuration settings for FramePack AI Video Generator
-"""
+}
 
 # Preset configurations for different video types
 PRESET_CONFIGS = {
@@ -30,7 +32,7 @@ PRESET_CONFIGS = {
         "steps": 25,
         "gs": 10.0,
         "gpu_memory_preservation": 6,
-        "flow_preset": "Default"
+        "flow_preset": "standard"
     },
     "Dance": {
         "prompt": "The person dances gracefully, with clear movements, full of charm.",
@@ -38,7 +40,7 @@ PRESET_CONFIGS = {
         "steps": 30,
         "gs": 12.0,
         "gpu_memory_preservation": 6,
-        "flow_preset": "Dance"
+        "flow_preset": "dance"
     },
     "Talking": {
         "prompt": "The person is talking, with clear facial expressions, gesturing naturally.",
@@ -46,7 +48,7 @@ PRESET_CONFIGS = {
         "steps": 22,
         "gs": 8.0,
         "gpu_memory_preservation": 6,
-        "flow_preset": "Talking"
+        "flow_preset": "talking"
     },
     "Action": {
         "prompt": "The person performs an action with flowing movement. High quality, detailed.", 
@@ -54,7 +56,7 @@ PRESET_CONFIGS = {
         "steps": 30, 
         "gs": 12.0,
         "gpu_memory_preservation": 6,
-        "flow_preset": "Action"
+        "flow_preset": "action"
     },
     "Subtle Movement": {
         "prompt": "The person makes subtle movements with minimal change. Slow, deliberate motion.",
@@ -62,7 +64,7 @@ PRESET_CONFIGS = {
         "steps": 20,
         "gs": 7.0,
         "gpu_memory_preservation": 6,
-        "flow_preset": "Subtle Movement"
+        "flow_preset": "subtle"
     },
     "Hand Movement": {
         "prompt": "The person makes detailed hand gestures and finger movements, demonstrating fine motor control.",
@@ -70,7 +72,7 @@ PRESET_CONFIGS = {
         "steps": 35,
         "gs": 14.0,
         "gpu_memory_preservation": 8,
-        "flow_preset": "Hand Detail"
+        "flow_preset": "hand_detail"
     }
 }
 
@@ -112,5 +114,5 @@ DEFAULT_UI_SETTINGS = {
     "use_teacache": True,
     "hand_optimization": True,
     "mp4_crf": 16,
-    "flow_preset": "Default"  # Default flow shift preset
+    "flow_preset": "standard"  # Default flow shift preset
 }
