@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  ai-video-generator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ai-video-generator:latest
+    container_name: ai-video-generator
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./outputs:/app/outputs
+      - ./hf_download:/app/hf_download
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped

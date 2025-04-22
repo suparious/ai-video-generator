@@ -1,0 +1,87 @@
+FROM nvidia/cuda:12.8.0-devel-ubuntu22.04
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    DEBIAN_FRONTEND=noninteractive \
+    TZ=UTC \
+    PYTHON_VERSION=3.13.3
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libssl-dev \
+    zlib1g-dev \
+    libbz2-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    curl \
+    git \
+    libncursesw5-dev \
+    xz-utils \
+    tk-dev \
+    libxml2-dev \
+    libxmlsec1-dev \
+    libffi-dev \
+    liblzma-dev \
+    python3-full \
+    python3-pip \
+    python3-wheel \
+    python3-venv \
+    libavutil-dev \
+    libavformat-dev \
+    libavcodec-dev \
+    libavdevice-dev \
+    libavfilter-dev \
+    libswscale-dev \
+    gfortran \
+    libopenblas-dev \
+    cmake \
+    libxsimd-dev \
+    llvm \
+    ca-certificates \
+    wget \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python 3.13.3
+WORKDIR /tmp
+RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
+    && tar -xf Python-${PYTHON_VERSION}.tgz \
+    && cd Python-${PYTHON_VERSION} \
+    && ./configure --enable-optimizations \
+    && make -j$(nproc) \
+    && make altinstall \
+    && cd .. \
+    && rm -rf Python-${PYTHON_VERSION} Python-${PYTHON_VERSION}.tgz \
+    && ln -s /usr/local/bin/python3.13 /usr/local/bin/python \
+    && ln -s /usr/local/bin/pip3.13 /usr/local/bin/pip
+
+# Set up working directory
+WORKDIR /app
+
+# Copy requirements file
+COPY requirements.txt .
+
+# Install basic packaging tools
+RUN pip install --no-cache-dir wheel setuptools packaging
+
+# Install PyTorch with CUDA 12.8 support
+RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the application code
+COPY . .
+
+# Create output directory
+RUN mkdir -p /app/outputs /app/hf_download
+
+# Set environment variables for Hugging Face
+ENV HF_HOME=/app/hf_download
+
+# Expose the default Gradio port
+EXPOSE 7860
+
+# Run the application
+CMD ["python", "demo_gradio.py", "--server", "0.0.0.0", "--port", "7860"]

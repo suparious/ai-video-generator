@@ -1,0 +1,17 @@
+.git
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv
+env
+.env
+*.so
+*.dylib
+.DS_Store
+.idea
+.vscode
+outputs/
+hf_download/
+*.pdf
