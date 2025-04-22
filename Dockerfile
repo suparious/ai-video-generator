@@ -45,7 +45,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install Python 3.13.3
 WORKDIR /tmp
-RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
+RUN wget --progress=dot:giga https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
     && tar -xf Python-${PYTHON_VERSION}.tgz \
     && cd Python-${PYTHON_VERSION} \
     && ./configure --enable-optimizations \
@@ -54,7 +54,8 @@ RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VER
     && cd .. \
     && rm -rf Python-${PYTHON_VERSION} Python-${PYTHON_VERSION}.tgz \
     && ln -s /usr/local/bin/python3.13 /usr/local/bin/python \
-    && ln -s /usr/local/bin/pip3.13 /usr/local/bin/pip
+    && ln -s /usr/local/bin/pip3.13 /usr/local/bin/pip \
+    && pip install --no-cache-dir wheel setuptools packaging
 
 # Set up working directory
 WORKDIR /app
@@ -62,14 +63,10 @@ WORKDIR /app
 # Copy requirements file
 COPY requirements.txt .
 
-# Install basic packaging tools
-RUN pip install --no-cache-dir wheel setuptools packaging
-
-# Install PyTorch with CUDA 12.8 support
-RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
-
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install PyTorch with CUDA 12.8 support and other dependencies in a single layer
+RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128 && \
+    pip install --no-cache-dir -r requirements.txt && \
+    rm -rf /root/.cache/pip
 
 # Copy the application code
 COPY . .
