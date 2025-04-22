@@ -179,3 +179,4 @@ cython_debug/
 
 # AI prompts
 CUSTOM_INSTRUCTIONS.md
+OPENER.md
