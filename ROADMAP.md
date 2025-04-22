@@ -18,13 +18,13 @@ Based on a review of the [FramePack paper](https://arxiv.org/abs/2504.12626) and
 
 ### Memory Efficiency
 - **Dynamic Compression Rate Adjustment**: Automatically adjust compression rates based on input video length.
-- **TeaCache Optimization**: Fine-tune TeaCache implementation with better thresholds and rescale functions.
+- **TeaCache Optimization**: ✅ Fine-tune TeaCache implementation with better thresholds and rescale functions.
 - **Tail Options Implementation**: Support for all three tail options (delete, append, compress) with automatic selection.
 
 ### Computational Efficiency
 - **Optimized RoPE Alignment**: Streamline RoPE implementation for better performance.
 - **Attention Optimization**: Implement more efficient attention mechanisms with optimized CUDA kernels.
-- **Flow Shift Parameter Tuning**: Better tune flow shift parameters based on the paper's findings.
+- **Flow Shift Parameter Tuning**: ✅ Better tune flow shift parameters based on the paper's findings.
 
 ## 3. Quality Improvements
 
