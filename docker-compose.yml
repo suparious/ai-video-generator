@@ -4,8 +4,8 @@ services:
   ai-video-generator:
     build:
       context: .
-      dockerfile: Dockerfile
-    image: ai-video-generator:latest
+      args:
+        - BUILDKIT_INLINE_CACHE=0
     container_name: ai-video-generator
     ports:
       - "7860:7860"
@@ -19,4 +19,3 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-    restart: unless-stopped

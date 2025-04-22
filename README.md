@@ -27,50 +27,29 @@ In any case, you will directly see the generated frames since it is next-frame(-
 
 ## Installation
 
-### Option 1: Docker (Recommended)
+### Option 1: Using Docker
 
-#### Using Pre-built Docker Image
-
-The easiest way to get started is to use our pre-built Docker image with NVIDIA GPU support:
-
-```bash
-# Pull the Docker image from GitHub Container Registry
-docker pull ghcr.io/suparious/ai-video-generator:latest
-
-# Run the container
-docker run --gpus all -p 7860:7860 -v "$(pwd)/outputs:/app/outputs" -v "$(pwd)/hf_download:/app/hf_download" ghcr.io/suparious/ai-video-generator:latest
-```
-
-#### Using Docker Compose
-
-Alternatively, you can use Docker Compose:
+#### Prerequisites
+- Docker installed
+- NVIDIA Docker support (nvidia-container-toolkit)
 
 ```bash
-# Clone the repository
-git clone https://github.com/suparious/ai-video-generator.git
-cd ai-video-generator
-
-# Start the container using Docker Compose
+# Build and run with Docker Compose
 docker-compose up -d
-```
 
-#### Building the Docker Image Locally
-
-If you prefer to build the Docker image yourself:
-
-```bash
-# Clone the repository
-git clone https://github.com/suparious/ai-video-generator.git
-cd ai-video-generator
-
-# Build the Docker image
+# Or manually with Docker
 docker build -t ai-video-generator .
-
-# Run the container
 docker run --gpus all -p 7860:7860 -v "$(pwd)/outputs:/app/outputs" -v "$(pwd)/hf_download:/app/hf_download" ai-video-generator
 ```
 
-**Note**: Docker must be configured with NVIDIA Container Toolkit to use GPU acceleration. See [NVIDIA Container Toolkit documentation](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) for setup instructions.
+Access the application at http://localhost:7860
+
+You can also pull the image from GitHub Container Registry:
+
+```bash
+docker pull ghcr.io/suparious/ai-video-generator:latest
+docker run --gpus all -p 7860:7860 -v "$(pwd)/outputs:/app/outputs" -v "$(pwd)/hf_download:/app/hf_download" ghcr.io/suparious/ai-video-generator:latest
+```
 
 ### Option 2: Manual Installation
 

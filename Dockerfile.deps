@@ -1,0 +1,19 @@
+FROM nvidia/cuda:12.8.0-devel-ubuntu22.04
+
+ENV PYTHONUNBUFFERED=1 \
+    DEBIAN_FRONTEND=noninteractive
+
+# Install minimal dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3-pip \
+    python3-wheel \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY requirements.txt .
+
+# Install dependencies but don't copy application code
+RUN pip install --no-cache-dir wheel setuptools packaging
+RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
+RUN pip install --no-cache-dir -r requirements.txt

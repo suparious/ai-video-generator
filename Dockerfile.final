@@ -1,0 +1,16 @@
+FROM ghcr.io/suparious/github.com/suparious/ai-video-generator:deps
+
+# Copy the application code
+COPY . .
+
+# Create output directory
+RUN mkdir -p /app/outputs /app/hf_download
+
+# Set environment variables for Hugging Face
+ENV HF_HOME=/app/hf_download
+
+# Expose the default Gradio port
+EXPOSE 7860
+
+# Run the application
+CMD ["python3", "demo_gradio.py", "--server", "0.0.0.0", "--port", "7860"]

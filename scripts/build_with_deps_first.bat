@@ -1,3 +1,5 @@
+REM Example usage: build_with_deps_first.bat suparious ai-video-generator
+
 @echo off
 REM Script to build the Docker image in two steps to avoid disk space issues
 REM First builds a deps-only image, then builds the final image using that as a base
@@ -27,7 +29,7 @@ echo.
 echo ENV PYTHONUNBUFFERED=1 \
 echo     DEBIAN_FRONTEND=noninteractive
 echo.
-echo REM Install minimal dependencies
+echo # Install minimal dependencies
 echo RUN apt-get update ^&^& apt-get install -y --no-install-recommends \
 echo     python3-pip \
 echo     python3-wheel \
@@ -37,7 +39,7 @@ echo.
 echo WORKDIR /app
 echo COPY requirements.txt .
 echo.
-echo REM Install dependencies but don't copy application code
+echo # Install dependencies but don't copy application code
 echo RUN pip install --no-cache-dir wheel setuptools packaging
 echo RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
 echo RUN pip install --no-cache-dir -r requirements.txt
@@ -50,19 +52,19 @@ echo Step 3: Creating final Dockerfile
 (
 echo FROM %DEPS_IMAGE_NAME%
 echo.
-echo REM Copy the application code
+echo # Copy the application code
 echo COPY . .
 echo.
-echo REM Create output directory
+echo # Create output directory
 echo RUN mkdir -p /app/outputs /app/hf_download
 echo.
-echo REM Set environment variables for Hugging Face
+echo # Set environment variables for Hugging Face
 echo ENV HF_HOME=/app/hf_download
 echo.
-echo REM Expose the default Gradio port
+echo # Expose the default Gradio port
 echo EXPOSE 7860
 echo.
-echo REM Run the application
+echo # Run the application
 echo CMD ["python3", "demo_gradio.py", "--server", "0.0.0.0", "--port", "7860"]
 ) > Dockerfile.final
 
