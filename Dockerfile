@@ -1,5 +1,5 @@
 # Stage 1: Build Python and dependencies
-FROM nvidia/cuda:12.8.1-devel-ubuntu24.04 AS builder
+FROM nvidia/cuda:12.8.1-devel-ubuntu24.04 as builder
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
@@ -39,7 +39,7 @@ RUN pip install --upgrade pip && \
     pip install wheel setuptools packaging
 
 # Copy your wheels first if you have any
-COPY --chown=root:root wheels/ /app/wheels/
+COPY wheels/ /app/wheels/
 
 # Install PyTorch with CUDA 12.8
 #RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
@@ -105,15 +105,15 @@ ENV HF_HOME=/app/hf_download \
 # Set working directory
 WORKDIR /app
 
-# Copy application code (excluding volume-mounted directories)
-COPY --chown=root:root config.py demo_gradio.py /app/
-COPY --chown=root:root diffusers_helper/ /app/diffusers_helper/
-COPY --chown=root:root static/ /app/static/
-COPY --chown=root:root *.md /app/
-COPY --chown=root:root LICENSE /app/
+# Copy application code, but NOT the large model directories
+# Copy specific files and directories
+COPY config.py demo_gradio.py requirements.txt *.md LICENSE /app/
+COPY diffusers_helper/ /app/diffusers_helper/
+COPY docs/ /app/docs/
+COPY static/ /app/static/
 
-# Create output directories - these will be mounted as volumes
-RUN mkdir -p /app/outputs /app/static /app/hf_download
+# Create directories for volume mounts
+RUN mkdir -p /app/outputs /app/hf_download
 
 # Expose port for Gradio
 EXPOSE 7860
