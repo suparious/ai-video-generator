@@ -17,6 +17,13 @@ services:
       - ./hf_download:/app/hf_download
       # Optionally mount the static directory for custom CSS
       - ./static:/app/static
+    environment:
+      # Set environment variable to use the mounted HF cache
+      - HF_HOME=/app/hf_download
+      # Pass through Hugging Face token from host if available
+      - HF_TOKEN=${HF_TOKEN:-}
+      # Optional: control CUDA memory management
+      - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128
     deploy:
       resources:
         reservations:

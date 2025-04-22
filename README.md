@@ -59,6 +59,19 @@ For the latest NVIDIA Cuda 12.8:
 
   `pip install -r requirements.txt`
 
+### Install bugs
+
+If you get some weird torch errors, with a manually isntalled torch on cuda 12.8, you can workaroind this with:
+
+```bash
+pip uninstall torch torchvision torchaudio
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
+```
+
+And then try running the GUI again.
+
+## GUI Guide
+
 To start the GUI, run:
 
 `python demo_gradio.py`
@@ -74,8 +87,6 @@ For example, to install a specific version of sage-attention, comment it out fro
 However, you are highly recommended to first try without sage-attention since it will influence results, though the influence is minimal.
 
 Building the wheels for all of these kernels can take a long time.
-
-## GUI Guide
 
 ### Basic Usage
 

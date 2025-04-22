@@ -11,25 +11,50 @@ This document explains how to use Docker to run the FramePack AI Video Generator
 
 ## Quick Start
 
-1. Build and start the container using docker-compose:
+### Step 1: Download Models (First Time Only)
+
+Before running the container for the first time, download the required models:
+
+```bash
+# First, install dependencies according to the main README.md
+# See: README.md for the complete setup instructions
+
+# Then download models (uses HF_TOKEN from environment if available)
+python download_models.py
+
+# Or specify a token directly
+python download_models.py --token YOUR_HF_TOKEN
+```
+
+> **Note:** Using a Hugging Face token (`HF_TOKEN`) significantly speeds up model downloads. For convenience, consider adding it to your environment variables in `/etc/environment` on Linux or system environment variables on Windows.
+
+This process may take some time (around 15-20 minutes depending on your internet speed) but only needs to be done once. It downloads approximately 7GB of model files.
+
+### Step 2: Build and Run the Docker Container
+
+Build and start the container using docker-compose:
 
 ```bash
 docker-compose up -d
 ```
 
-2. Access the Gradio interface in your browser:
+### Step 3: Access the Interface
+
+Access the Gradio interface in your browser:
 
 ```
 http://localhost:7860
 ```
 
-3. To view logs:
+### Additional Commands
+
+**View logs:**
 
 ```bash
 docker-compose logs -f
 ```
 
-4. To stop the container:
+**Stop the container:**
 
 ```bash
 docker-compose down
@@ -40,12 +65,50 @@ docker-compose down
 The Docker setup mounts several volumes to persist data:
 
 - `./outputs`: Generated videos will be saved here
-- `./hf_download`: Hugging Face model cache
+- `./hf_download`: Hugging Face model cache (40GB+)
 - `./static`: Custom CSS and static files
+- `./wheels`: Directory for custom-compiled wheels
+
+## Handling Large Model Files
+
+The Hugging Face model files are very large (40GB+) and should not be included in the Docker image. Instead, they are mounted as a volume. There are two approaches:
+
+### Approach 1: Pre-download Models (Recommended)
+
+Use the provided script to download models before running Docker:
+
+```bash
+# First, install dependencies according to the main README.md
+# See: README.md for the complete setup instructions
+
+# Then download models (uses HF_TOKEN from environment if available)
+python download_models.py
+
+# Or specifying a token directly
+python download_models.py --token YOUR_HF_TOKEN
+```
+
+This creates a `hf_download` directory with all required models, which is then mounted into the container.
+
+### Approach 2: Download at Runtime
+
+If you don't pre-download models, they will be downloaded the first time you run the container. This can be slow and requires internet access at runtime.
+
+To speed up subsequent runs, the models are cached in the mounted `hf_download` directory.
+
+The container automatically uses your `HF_TOKEN` from the environment if available.
+
+### Managing Model Cache Size
+
+If disk space is a concern:
+
+1. Delete unused model versions in `hf_download/hub/models/`
+2. Keep only the specific model versions used by the application
+3. Consider using a larger drive for the model cache and adjust the volume mount path in `docker-compose.yml`
 
 ## Custom Wheels
 
-If you have custom-compiled wheels (like for `flash-attn`, `xformers`, etc.), place them in a `wheels` directory before building:
+If you need custom-compiled wheels (like for `flash-attn`, `xformers`, etc.), please refer to the main README.md for setting up your environment first. Once you have your environment set up according to the instructions in README.md, you can extract the wheels for Docker:
 
 ### For Linux Users
 

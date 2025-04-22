@@ -1,5 +1,5 @@
-#FROM nvidia/cuda:12.8.0-devel-debian12
-FROM nvidia/cuda:12.8.1-devel-ubuntu24.04
+# Stage 1: Build Python and dependencies
+FROM nvidia/cuda:12.8.1-devel-ubuntu24.04 as builder
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     libavutil-dev libavformat-dev libavcodec-dev libavdevice-dev \
     libavfilter-dev libswscale-dev gfortran libopenblas-dev \
     cmake libxsimd-dev llvm ffmpeg wget && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Install pyenv to handle Python 3.13.3
@@ -29,14 +30,6 @@ RUN pyenv global 3.13.3
 # Create app directory
 WORKDIR /app
 
-# Copy your wheels first if you have any
-# The wheels directory should contain any custom compiled packages
-# such as flash-attn, xformers, etc.
-COPY --chown=root:root wheels/ /app/wheels/
-
-# Copy the entire project
-COPY --chown=root:root . /app/
-
 # Create and activate virtual environment
 RUN python -m venv /app/venv
 ENV PATH="/app/venv/bin:$PATH"
@@ -45,29 +38,77 @@ ENV PATH="/app/venv/bin:$PATH"
 RUN pip install --upgrade pip && \
     pip install wheel setuptools packaging
 
-# Install PyTorch with CUDA 12.8 (nightly build)
-RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
+# Copy your wheels first if you have any
+COPY --chown=root:root wheels/ /app/wheels/
+
+# Install PyTorch with CUDA 12.8
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 
 # Install custom wheels if available
 RUN if [ -d "/app/wheels" ] && [ "$(ls -A /app/wheels)" ]; then \
         pip install /app/wheels/*.whl; \
     fi
 
-# Install other project requirements
+# Copy just the requirements first to leverage Docker caching
+COPY requirements.txt /app/
 RUN pip install -r requirements.txt
 
-# fix potential bug with torch version
-RUN pip uninstall torch torchvision torchaudio -y
-RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+# Fix potential bug with torch version
+RUN pip uninstall torch torchvision torchaudio -y && \
+    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+
+# Clean up unnecessary files
+RUN rm -rf $(pip cache dir) && \
+    rm -rf /root/.cache/pip && \
+    rm -rf /tmp/* && \
+    rm -rf /root/.pyenv/sources/* && \
+    rm -rf /root/.pyenv/cache/* && \
+    find /root/.pyenv -name "*.o" -delete && \
+    find /root/.pyenv -name "*.a" -delete
+
+# Stage 2: Create the final runtime image
+FROM nvidia/cuda:12.8.1-runtime-ubuntu24.04
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    DEBIAN_FRONTEND=noninteractive
+
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y \
+    python3-minimal \
+    ffmpeg \
+    libavcodec-dev \
+    libavformat-dev \
+    libavutil-dev \
+    libswscale-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy Python and the virtual environment from the builder stage
+COPY --from=builder /root/.pyenv /root/.pyenv
+COPY --from=builder /app/venv /app/venv
+
+# Set up Python environment
+ENV PYENV_ROOT="/root/.pyenv"
+ENV PATH="/root/.pyenv/bin:/root/.pyenv/shims:/app/venv/bin:$PATH"
+
+# Don't attempt to download HF models in Docker build
+ENV HF_HOME=/app/hf_download \
+    TRANSFORMERS_OFFLINE=1 \
+    DIFFUSERS_OFFLINE=1 \
+    PATH="/usr/local/cuda/bin:${PATH}" \
+    LD_LIBRARY_PATH="/usr/local/cuda/lib64:${LD_LIBRARY_PATH}"
+
+# Set working directory
+WORKDIR /app
+
+# Copy application code
+COPY --chown=root:root . /app/
 
 # Create output directories
 RUN mkdir -p /app/outputs /app/static /app/hf_download
 
-# Set environment variables for CUDA
-ENV PATH="/usr/local/cuda/bin:${PATH}"
-ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64:${LD_LIBRARY_PATH}"
-
-# Expose ports for Gradio
+# Expose port for Gradio
 EXPOSE 7860
 
 # Default command to run the application
