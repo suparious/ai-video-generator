@@ -38,6 +38,9 @@ ENV PATH="/app/venv/bin:$PATH"
 RUN pip install --upgrade pip && \
     pip install wheel setuptools packaging
 
+# Install HuggingFace Hub CLI
+RUN pip install huggingface_hub[cli]
+
 # Copy your wheels first if you have any
 COPY wheels/ /app/wheels/
 
