@@ -1,4 +1,5 @@
-FROM nvidia/cuda:12.8.0-devel-debian12
+#FROM nvidia/cuda:12.8.0-devel-debian12
+FROM nvidia/cuda:12.8.1-devel-ubuntu24.04
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
