@@ -398,10 +398,10 @@ with block:
             example_quick_prompts.click(lambda x: x[0], inputs=[example_quick_prompts], outputs=prompt, show_progress=False, queue=False)
 
             with gr.Row():
-            with gr.Column(scale=4):
-                start_button = gr.Button(value="Start Generation", variant="primary")
-            with gr.Column(scale=2):
-                end_button = gr.Button(value="End Generation", interactive=False, variant="stop")
+                with gr.Column(scale=4):
+                    start_button = gr.Button(value="Start Generation", variant="primary")
+                with gr.Column(scale=2):
+                    end_button = gr.Button(value="End Generation", interactive=False, variant="stop")
 
             with gr.Group():
                 with gr.Accordion("Presets", open=True):
