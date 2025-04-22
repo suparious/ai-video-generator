@@ -41,26 +41,12 @@ else:
 # Create directories
 Path(os.environ['HF_HOME']).mkdir(parents=True, exist_ok=True)
 
-# Import libraries
+# Check for huggingface_hub - it's all we really need for downloading
 try:
     import huggingface_hub
-    from transformers.utils import cached_file
-    from diffusers.utils import cached_file as diffusers_cached_file
 except ImportError:
-    print("Error: Required packages not installed. Please install according to README.md")
+    print("Error: huggingface_hub not installed. Please run: pip install huggingface_hub")
     sys.exit(1)
-
-# Load the needed imports only if we're not just validating
-if not args.validate_only:
-    try:
-        from diffusers import AutoencoderKLHunyuanVideo
-        from transformers import (
-            LlamaModel, CLIPTextModel, LlamaTokenizerFast, CLIPTokenizer,
-            SiglipImageProcessor, SiglipVisionModel
-        )
-    except ImportError:
-        print("Error: Required packages not installed. Please install according to README.md")
-        sys.exit(1)
 
 print("Starting model validation/download...")
 
