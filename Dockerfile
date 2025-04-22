@@ -105,15 +105,11 @@ ENV HF_HOME=/app/hf_download \
 # Set working directory
 WORKDIR /app
 
-# Copy application code, but NOT the large model directories
-# Copy specific files and directories
-COPY config.py demo_gradio.py requirements.txt *.md LICENSE /app/
-COPY diffusers_helper/ /app/diffusers_helper/
-COPY docs/ /app/docs/
-COPY static/ /app/static/
+# Copy application code (rely on .dockerignore to exclude large dirs)
+COPY . /app/
 
 # Create directories for volume mounts
-RUN mkdir -p /app/outputs /app/hf_download
+RUN mkdir -p /app/outputs /app/hf_download /app/static
 
 # Expose port for Gradio
 EXPOSE 7860
