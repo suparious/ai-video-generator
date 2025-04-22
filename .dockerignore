@@ -7,8 +7,8 @@
 hf_download/
 outputs/
 
-# Exclude wheels folder since we already installed dependencies
-wheels/
+# Don't exclude wheels - we need these
+!wheels/
 
 # Docker
 Dockerfile
