@@ -14,15 +14,15 @@ FramePack is an advanced AI video generator based on next-frame prediction techn
 
 Note that this repo is a functional desktop software with minimal standalone high-quality sampling system and memory management.
 
-- Nvidia GPU in RTX 30XX, 40XX, 50XX series that supports fp16 and bf16. The GTX 10XX/20XX are not tested.
+- Nvidia GPU in RTX 30XX, 40XX, 50XX series that supports fp16 and bf16. The GTX 20XX are not tested and the GTX 10XX probably wont work.
 - Linux or Windows operating system.
 - At least 6GB GPU memory.
 
 To generate 1-minute video (60 seconds) at 30fps (1800 frames) using 13B model, the minimal required GPU memory is 6GB. (Yes 6 GB, not a typo. Laptop GPUs are okay.)
 
-About speed, on my RTX 4090 desktop it generates at a speed of 2.5 seconds/frame (unoptimized) or 1.5 seconds/frame (teacache). On my laptops like 3070ti laptop or 3060 laptop, it is about 4x to 8x slower.
+About speed, on the RTX 4090 desktop it generates at a speed of 2.5 seconds/frame (unoptimized) or 1.5 seconds/frame (teacache). On laptops like 3070ti laptop or 3060 laptop, it is about 4x to 8x slower.
 
-In any case, you will directly see the generated frames since it is next-frame(-section) prediction. So you will get lots of visual feedback before the entire video is generated.
+In any case, you will directly see the generated frames since it is next-frame(-section) prediction. So you will get lots of visual feedback before the entire video is generated. The video usually generates from reverse.
 
 ## Installation
 
@@ -31,20 +31,24 @@ On a Debian / Ubuntu system, install dev dependencies:
 ```bash
 sudo apt update
 
-sudo apt install build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev curl git libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
+sudo apt install -y build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev curl git libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
 
-sudo apt install python3-full python3-pip python3-wheel python3-venv
+sudo apt install -y python3-full python3-pip python3-wheel python3-venv
 
-sudo apt install libavutil-dev libavformat-dev libavcodec-dev libavdevice-dev libavfilter-dev libswscale-dev gfortran libopenblas-dev cmake libxsimd-dev
+sudo apt install -y libavutil-dev libavformat-dev libavcodec-dev libavdevice-dev libavfilter-dev libswscale-dev gfortran libopenblas-dev cmake libxsimd-dev
 
-sudo apt install llvm
+sudo apt install -y llvm
 ```
 
-We recommend having an independent Python 3.13.
+We recommend having an independent Python 3.13 virtual environment, using [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#a-getting-pyenv).
 
-- Explicitly setup your torch ahead of the requirements, if you have special needs, such as ROCm or older / newer NVIDIA:
+- Explicitly setup your torch ahead of the requirements, if you have special needs, such as ROCm or older / newer NVIDIA, then adjust this command appropriately. For standard NVIDIA Cuda 12.6 use:
 
-  `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128`
+  `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126`
+
+- It is highly recommended to run as a local user and not root. To do this you will need `wheel` and a few other setup and packaging tools:
+
+  `pip install wheel setuptools packaging`
 
 - Then install requirements the normal way:
 
@@ -120,19 +124,23 @@ For best results, use concise, motion-focused prompts that follow this structure
 ### Example Prompts by Category
 
 **Dance Movements:**
+
 - "The person dances gracefully, with clear movements, full of charm."
 - "The person performs a spinning motion with arms extended."
 
 **Talking/Expressions:**
+
 - "The person talks animatedly, using hand gestures to emphasize points."
 - "The person smiles and nods, maintaining eye contact."
 
 **Hand-Focused Actions:**
+
 - "The person plays an invisible piano with detailed finger movements."
 - "The person waves hello with a friendly smile."
 - "The person gestures with hands while explaining a concept."
 
 **Subtle Movements:**
+
 - "The person makes subtle movements, with a calm expression."
 - "The person breathes slowly, barely moving, with a peaceful demeanor."
 
