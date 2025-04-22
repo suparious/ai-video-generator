@@ -105,10 +105,14 @@ ENV HF_HOME=/app/hf_download \
 # Set working directory
 WORKDIR /app
 
-# Copy application code
-COPY --chown=root:root . /app/
+# Copy application code (excluding volume-mounted directories)
+COPY --chown=root:root config.py demo_gradio.py /app/
+COPY --chown=root:root diffusers_helper/ /app/diffusers_helper/
+COPY --chown=root:root static/ /app/static/
+COPY --chown=root:root *.md /app/
+COPY --chown=root:root LICENSE /app/
 
-# Create output directories
+# Create output directories - these will be mounted as volumes
 RUN mkdir -p /app/outputs /app/static /app/hf_download
 
 # Expose port for Gradio
