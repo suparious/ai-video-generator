@@ -1,5 +1,8 @@
 name: Build and Publish Docker Image (Multi-Stage)
 
+# NOTE: This is an alternative workflow for large builds that might run out of disk space
+# You can trigger this workflow manually from the Actions tab
+
 on:
   workflow_dispatch:  # Manual trigger only
 
