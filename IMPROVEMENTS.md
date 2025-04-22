@@ -23,6 +23,7 @@ This document summarizes the improvements implemented to enhance the FramePack A
 ### Example Prompts
 - Expanded list of example prompts organized by category
 - More diverse motion examples for various scenarios
+- Updated prompts to use gender-neutral language ("The person" instead of "The girl/man")
 
 ## 2. TeaCache Optimization
 
@@ -67,6 +68,24 @@ This document summarizes the improvements implemented to enhance the FramePack A
 - Provided structured templates for effective prompts
 - Added category-specific examples for different types of motion
 - Enhanced AI-assisted prompt generation guidance
+- Updated prompt examples to use inclusive, gender-neutral language
+
+## 5. Optimized Flow Shift Parameters
+
+### Content-Specific Flow Shift Configuration
+- Implemented optimized flow shift parameters for different content types
+- Created presets for dance, talking, action, subtle movements, and hand details
+- Added configurability for detail level (standard, high, extreme)
+
+### Technical Implementation
+- Added comprehensive flow shift configuration system
+- Implemented both mu (magnitude) and sigma (curve shape) parameters
+- Created user-friendly preset system accessible through the UI
+
+### Documentation
+- Created detailed documentation in `docs/FLOW_SHIFT.md`
+- Added code comments explaining the parameter tuning approach
+- Updated README with information about flow shift benefits
 
 ## Future Improvement Opportunities
 
@@ -75,5 +94,4 @@ Based on the FramePack paper, these areas could be addressed in future updates:
 1. **FramePack Variants Implementation**: Further implement additional kernel configurations from the paper
 2. **Dynamic Kernel Selection**: Add automatic selection of optimal kernel patterns based on content
 3. **Improved Anti-Drifting**: Further enhance the inverted temporal order sampling
-4. **Flow Shift Parameter Tuning**: Implement more balanced diffusion schedulers
-5. **Enhanced Memory Efficiency**: Further optimize memory usage for longer videos
+4. **Enhanced Memory Efficiency**: Further optimize memory usage for longer videos

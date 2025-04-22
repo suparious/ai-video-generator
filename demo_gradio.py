@@ -1,7 +1,7 @@
 from diffusers_helper.hf_login import login
 
 import os
-from config import PRESET_CONFIGS, EXAMPLE_PROMPTS, TEACACHE_CONFIG, DEFAULT_UI_SETTINGS
+from config import PRESET_CONFIGS, EXAMPLE_PROMPTS, TEACACHE_CONFIG, DEFAULT_UI_SETTINGS, FLOW_SHIFT_CONFIGS
 
 os.environ['HF_HOME'] = os.path.abspath(os.path.realpath(os.path.join(os.path.dirname(__file__), './hf_download')))
 
@@ -107,7 +107,7 @@ os.makedirs(STATIC_DIR, exist_ok=True)
 
 
 @torch.no_grad()
-def worker(input_image, prompt, n_prompt, seed, total_second_length, latent_window_size, steps, cfg, gs, rs, gpu_memory_preservation, use_teacache, hand_optimization, mp4_crf):
+def worker(input_image, prompt, n_prompt, seed, total_second_length, latent_window_size, steps, cfg, gs, rs, gpu_memory_preservation, use_teacache, hand_optimization, flow_preset, mp4_crf):
     total_latent_sections = (total_second_length * 30) / (latent_window_size * 4)
     total_latent_sections = int(max(round(total_latent_sections), 1))
 
@@ -238,6 +238,13 @@ def worker(input_image, prompt, n_prompt, seed, total_second_length, latent_wind
             else:
                 transformer.initialize_teacache(enable_teacache=False)
                 print("TeaCache disabled")
+                
+            # Get the actual flow preset name from the config if needed
+            actual_flow_preset = flow_preset
+            if actual_flow_preset in FLOW_SHIFT_CONFIGS:
+                actual_flow_preset = FLOW_SHIFT_CONFIGS[actual_flow_preset]["flow_preset"]
+            
+            print(f"Using flow preset: {actual_flow_preset}")
 
             def callback(d):
                 preview = d['denoised']
@@ -266,7 +273,8 @@ def worker(input_image, prompt, n_prompt, seed, total_second_length, latent_wind
                 real_guidance_scale=cfg,
                 distilled_guidance_scale=gs,
                 guidance_rescale=rs,
-                # shift=3.0,
+                # shift=3.0,  # Replaced with flow_preset
+                flow_preset=actual_flow_preset,  # Use optimized flow shift parameters
                 num_inference_steps=steps,
                 generator=rnd,
                 prompt_embeds=llama_vec,
@@ -334,7 +342,7 @@ def worker(input_image, prompt, n_prompt, seed, total_second_length, latent_wind
     return
 
 
-def process(input_image, prompt, n_prompt, seed, total_second_length, latent_window_size, steps, cfg, gs, rs, gpu_memory_preservation, use_teacache, hand_optimization, mp4_crf):
+def process(input_image, prompt, n_prompt, seed, total_second_length, latent_window_size, steps, cfg, gs, rs, gpu_memory_preservation, use_teacache, hand_optimization, flow_preset, mp4_crf):
     global stream
     assert input_image is not None, 'No input image!'
 
@@ -342,7 +350,7 @@ def process(input_image, prompt, n_prompt, seed, total_second_length, latent_win
 
     stream = AsyncStream()
 
-    async_run(worker, input_image, prompt, n_prompt, seed, total_second_length, latent_window_size, steps, cfg, gs, rs, gpu_memory_preservation, use_teacache, hand_optimization, mp4_crf)
+    async_run(worker, input_image, prompt, n_prompt, seed, total_second_length, latent_window_size, steps, cfg, gs, rs, gpu_memory_preservation, use_teacache, hand_optimization, flow_preset, mp4_crf)
 
     output_filename = None
 
@@ -470,41 +478,50 @@ with block:
                     )
                 
                 with gr.Accordion("Advanced Generation Settings", open=False):
-                    steps = gr.Slider(
-                        label="Diffusion Steps", 
-                        minimum=10, 
-                        maximum=100, 
-                        value=DEFAULT_UI_SETTINGS["steps"], 
-                        step=1, 
-                        info='Higher values generally improve quality but increase generation time. 20-30 is a good range.'
-                    )
+                    with gr.Column():
+                        steps = gr.Slider(
+                            label="Diffusion Steps", 
+                            minimum=10, 
+                            maximum=100, 
+                            value=DEFAULT_UI_SETTINGS["steps"], 
+                            step=1, 
+                            info='Higher values generally improve quality but increase generation time. 20-30 is a good range.'
+                        )
+                        
+                        flow_preset = gr.Dropdown(
+                            label="Flow Shift Preset",
+                            choices=list(FLOW_SHIFT_CONFIGS.keys()),
+                            value=DEFAULT_UI_SETTINGS["flow_preset"],
+                            info="Controls the diffusion scheduler behavior. Different options are optimized for different types of content."
+                        )
                     
-                    cfg = gr.Slider(
-                        label="CFG Scale", 
-                        minimum=1.0, 
-                        maximum=32.0, 
-                        value=DEFAULT_UI_SETTINGS["cfg"], 
-                        step=0.01, 
-                        visible=False
-                    )  # Should not change
-                    
-                    gs = gr.Slider(
-                        label="Guidance Scale", 
-                        minimum=1.0, 
-                        maximum=32.0, 
-                        value=DEFAULT_UI_SETTINGS["gs"], 
-                        step=0.1, 
-                        info='Controls how closely output follows prompt. Higher values give stronger prompt adherence but may reduce naturalness.'
-                    )
-                    
-                    rs = gr.Slider(
-                        label="CFG Re-Scale", 
-                        minimum=0.0, 
-                        maximum=1.0, 
-                        value=DEFAULT_UI_SETTINGS["rs"], 
-                        step=0.01, 
-                        visible=False
-                    )  # Should not change
+                    with gr.Column(visible=False):  # Hidden settings
+                        cfg = gr.Slider(
+                            label="CFG Scale", 
+                            minimum=1.0, 
+                            maximum=32.0, 
+                            value=DEFAULT_UI_SETTINGS["cfg"], 
+                            step=0.01, 
+                            visible=False
+                        )  # Should not change
+                        
+                        gs = gr.Slider(
+                            label="Guidance Scale", 
+                            minimum=1.0, 
+                            maximum=32.0, 
+                            value=DEFAULT_UI_SETTINGS["gs"], 
+                            step=0.1, 
+                            info='Controls how closely output follows prompt. Higher values give stronger prompt adherence but may reduce naturalness.'
+                        )
+                        
+                        rs = gr.Slider(
+                            label="CFG Re-Scale", 
+                            minimum=0.0, 
+                            maximum=1.0, 
+                            value=DEFAULT_UI_SETTINGS["rs"], 
+                            step=0.01, 
+                            visible=False
+                        )  # Should not change
 
         with gr.Column():
             preview_image = gr.Image(label="Next Latents", height=200, visible=False)
@@ -529,7 +546,7 @@ with block:
 
     gr.HTML('<div style="text-align:center; margin-top:20px;">Share your results and find ideas at the <a href="https://x.com/search?q=framepack&f=live" target="_blank">FramePack Twitter (X) thread</a></div>')
 
-    ips = [input_image, prompt, n_prompt, seed, total_second_length, latent_window_size, steps, cfg, gs, rs, gpu_memory_preservation, use_teacache, hand_optimization, mp4_crf]
+    ips = [input_image, prompt, n_prompt, seed, total_second_length, latent_window_size, steps, cfg, gs, rs, gpu_memory_preservation, use_teacache, hand_optimization, flow_preset, mp4_crf]
     start_button.click(fn=process, inputs=ips, outputs=[result_video, preview_image, progress_desc, progress_bar, start_button, end_button])
     end_button.click(fn=end_process)
     
@@ -550,6 +567,7 @@ with block:
             gr.update(value=preset["use_teacache"]),  # use_teacache
             # Enable hand optimization for certain presets that need it
             gr.update(value=not preset["use_teacache"]),  # If TeaCache is disabled, no need for hand optimization
+            gr.update(value=preset["flow_preset"] if "flow_preset" in preset else "standard"),  # flow_preset
             gr.update()   # mp4_crf (no change)
         ]
     
@@ -558,7 +576,7 @@ with block:
         fn=apply_preset,
         inputs=[preset_dropdown],
         outputs=[prompt, n_prompt, seed, total_second_length, latent_window_size, 
-                steps, cfg, gs, rs, gpu_memory_preservation, use_teacache, hand_optimization, mp4_crf]
+                steps, cfg, gs, rs, gpu_memory_preservation, use_teacache, hand_optimization, flow_preset, mp4_crf]
     )
 
 

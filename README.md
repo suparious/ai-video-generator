@@ -9,6 +9,7 @@ FramePack is an advanced AI video generator based on next-frame prediction techn
 - **Laptop-Friendly**: Can process long videos with 13B models even on modest laptop GPUs (6GB VRAM)
 - **High Quality Results**: Produces temporally consistent, high-quality video animations from a single image
 - **Optimized for Hand Details**: Special mode to improve hand and fine detail quality
+- **Content-Specific Flow Shift**: Optimized diffusion schedulers for different types of motion
 
 ## Requirements
 
@@ -87,10 +88,10 @@ Building the wheels for all of these kernels can take a long time.
 The interface includes several presets optimized for different types of videos:
 
 - **Default**: Balanced settings suitable for general use
-- **Dance**: Optimized for dance movements with TeaCache disabled for better hand details
-- **Talking**: Fine-tuned for facial expressions and talking animations
-- **Action**: Enhanced settings for dynamic movements and actions
-- **Subtle Movement**: Gentler settings for minimal, gradual movements
+- **Dance**: Optimized for dance movements with TeaCache disabled for better hand details and specialized flow shift parameters
+- **Talking**: Fine-tuned for facial expressions and talking animations with optimized flow shift for facial motion
+- **Action**: Enhanced settings for dynamic movements and actions with flow parameters tuned for fast motion
+- **Subtle Movement**: Gentler settings for minimal, gradual movements with less aggressive flow shift parameters
 
 #### TeaCache & Hand Optimization
 
@@ -181,6 +182,7 @@ Stay in a loop: one image in, one motion prompt out. Do not explain, ask questio
 
 - **Diffusion Steps**: More steps generally produce higher quality results at the cost of generation time. 25-30 is recommended for most purposes.
 - **Guidance Scale**: Controls how strongly the generation follows the prompt. Higher values (10-15) give stronger adherence to the prompt but may reduce naturalness.
+- **Flow Shift Preset**: Optimizes the diffusion schedule for specific types of content. Different presets are tuned for dance, talking, subtle movements, and hand details.
 - **Total Video Length**: Sets the target length of the final video. Longer videos take proportionally more time to generate.
 
 ## Troubleshooting
