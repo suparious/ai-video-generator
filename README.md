@@ -47,6 +47,10 @@ We recommend having an independent Python 3.13 virtual environment, using [pyenv
 
   `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126`
 
+For the latest NVIDIA Cuda 12.8:
+
+  `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128`
+
 - It is highly recommended to run as a local user and not root. To do this you will need `wheel` and a few other setup and packaging tools:
 
   `pip install wheel setuptools packaging`

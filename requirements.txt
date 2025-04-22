@@ -1,24 +1,24 @@
-accelerate==1.6.0
-diffusers==0.33.1
-transformers==4.46.2
-gradio==5.23.0
-sentencepiece==0.2.0
-pillow==11.1.0
-av==12.1.0
-numpy==1.26.2
-scipy>=1.13.0
-requests==2.31.0
-torchsde==0.2.6
+accelerate>=1.6.0
+diffusers>=0.33.1
+transformers>=4.51.3
+gradio>=5.25.2
+sentencepiece>=0.2.0
+pillow>=11.2.1
+av>=14.3.0
+numpy>=2.1.2
+scipy>=1.15.2
+requests>=2.32.3
+torchsde>=0.2.6
 
-einops
-opencv-contrib-python
-safetensors
+einops>=0.8.1
+opencv-contrib-python>=4.11.0.86
+safetensors>=0.5.3
 
 # Optional attention kernels
-xformers
-flash-attn
-triton
-torch
-torchvision
-torchaudio
-sageattention
+xformers>=0.0.29
+flash-attn>=2.7.4
+triton>=3.2.0
+torch>=2.6.0
+torchvision>=0.21.0
+torchaudio>=2.6.0
+sageattention>=1.0.6
