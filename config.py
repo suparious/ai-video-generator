@@ -1,4 +1,24 @@
-"""
+# Flow shift configurations
+FLOW_SHIFT_CONFIGS = {
+    "standard": {
+        "flow_preset": "Default"
+    },
+    "dance": {
+        "flow_preset": "Dance"
+    },
+    "talking": {
+        "flow_preset": "Talking"
+    },
+    "action": {
+        "flow_preset": "Action"
+    },
+    "subtle": {
+        "flow_preset": "Subtle Movement"
+    },
+    "hand_detail": {
+        "flow_preset": "Hand Detail"
+    }
+}"""
 Configuration settings for FramePack AI Video Generator
 """
 
@@ -9,42 +29,48 @@ PRESET_CONFIGS = {
         "use_teacache": True,
         "steps": 25,
         "gs": 10.0,
-        "gpu_memory_preservation": 6
+        "gpu_memory_preservation": 6,
+        "flow_preset": "Default"
     },
     "Dance": {
         "prompt": "The person dances gracefully, with clear movements, full of charm.",
         "use_teacache": False,  # Disable TeaCache for better hand details
         "steps": 30,
         "gs": 12.0,
-        "gpu_memory_preservation": 6
+        "gpu_memory_preservation": 6,
+        "flow_preset": "Dance"
     },
     "Talking": {
         "prompt": "The person is talking, with clear facial expressions, gesturing naturally.",
         "use_teacache": True,
         "steps": 22,
         "gs": 8.0,
-        "gpu_memory_preservation": 6
+        "gpu_memory_preservation": 6,
+        "flow_preset": "Talking"
     },
     "Action": {
         "prompt": "The person performs an action with flowing movement. High quality, detailed.", 
         "use_teacache": False,  # Disable TeaCache for better hand details
         "steps": 30, 
         "gs": 12.0,
-        "gpu_memory_preservation": 6
+        "gpu_memory_preservation": 6,
+        "flow_preset": "Action"
     },
     "Subtle Movement": {
         "prompt": "The person makes subtle movements with minimal change. Slow, deliberate motion.",
         "use_teacache": True,
         "steps": 20,
         "gs": 7.0,
-        "gpu_memory_preservation": 6
+        "gpu_memory_preservation": 6,
+        "flow_preset": "Subtle Movement"
     },
     "Hand Movement": {
         "prompt": "The person makes detailed hand gestures and finger movements, demonstrating fine motor control.",
         "use_teacache": False,  # Disable TeaCache completely for best hand details
         "steps": 35,
         "gs": 14.0,
-        "gpu_memory_preservation": 8
+        "gpu_memory_preservation": 8,
+        "flow_preset": "Hand Detail"
     }
 }
 
@@ -85,5 +111,6 @@ DEFAULT_UI_SETTINGS = {
     "gpu_memory_preservation": 6,
     "use_teacache": True,
     "hand_optimization": True,
-    "mp4_crf": 16
+    "mp4_crf": 16,
+    "flow_preset": "Default"  # Default flow shift preset
 }

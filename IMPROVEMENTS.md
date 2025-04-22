@@ -23,6 +23,7 @@ This document summarizes the improvements implemented to enhance the FramePack A
 ### Example Prompts
 - Expanded list of example prompts organized by category
 - More diverse motion examples for various scenarios
+- Updated prompts to use gender-neutral language ("The person" instead of "The girl/man")
 
 ## 2. TeaCache Optimization
 
@@ -67,6 +68,7 @@ This document summarizes the improvements implemented to enhance the FramePack A
 - Provided structured templates for effective prompts
 - Added category-specific examples for different types of motion
 - Enhanced AI-assisted prompt generation guidance
+- Updated prompt examples to use inclusive, gender-neutral language
 
 ## Future Improvement Opportunities
 
