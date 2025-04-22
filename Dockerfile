@@ -1,5 +1,5 @@
 # Stage 1: Build Python and dependencies
-FROM nvidia/cuda:12.8.1-devel-ubuntu24.04 as builder
+FROM nvidia/cuda:12.8.1-devel-ubuntu24.04 AS builder
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
