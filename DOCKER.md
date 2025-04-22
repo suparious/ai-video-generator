@@ -38,6 +38,8 @@ Build and start the container using docker-compose:
 docker-compose up -d
 ```
 
+Compiling the wheels in python can sometimes take around 3-5hours on a 6th generation Intel i7.
+
 ### Step 3: Access the Interface
 
 Access the Gradio interface in your browser:

@@ -42,7 +42,8 @@ RUN pip install --upgrade pip && \
 COPY --chown=root:root wheels/ /app/wheels/
 
 # Install PyTorch with CUDA 12.8
-RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+#RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
 
 # Install custom wheels if available
 RUN if [ -d "/app/wheels" ] && [ "$(ls -A /app/wheels)" ]; then \
@@ -54,8 +55,10 @@ COPY requirements.txt /app/
 RUN pip install -r requirements.txt
 
 # Fix potential bug with torch version
+#RUN pip uninstall torch torchvision torchaudio -y && \
+#    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 RUN pip uninstall torch torchvision torchaudio -y && \
-    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
 
 # Clean up unnecessary files
 RUN rm -rf $(pip cache dir) && \
