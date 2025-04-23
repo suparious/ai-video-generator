@@ -127,8 +127,8 @@ RUN pip install huggingface_hub[cli]
 EXPOSE 7860
 
 # Copy entrypoint script and make it executable
-COPY docker-entrypoint.sh /app/docker-entrypoint.sh
-COPY verify_environment.py /app/verify_environment.py
+COPY docker/docker-entrypoint.sh /app/docker-entrypoint.sh
+COPY scripts/verify_environment.py /app/verify_environment.py
 RUN chmod +x /app/docker-entrypoint.sh /app/verify_environment.py
 
 # Set entrypoint to ensure environment variables are properly set

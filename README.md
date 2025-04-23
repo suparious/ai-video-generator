@@ -1,5 +1,8 @@
 # FramePack AI Video Generator
 
+[![Docker](https://img.shields.io/badge/Docker-Available-blue)](docker/README.md)
+[![GitHub Container Registry](https://img.shields.io/badge/GHCR-Available-green)](PUBLISHING.md)
+
 FramePack is an advanced AI video generator based on next-frame prediction technology. It implements the architecture described in ["Packing Input Frame Context in Next-Frame Prediction Models for Video Generation"](https://arxiv.org/abs/2504.12626) (Zhang & Agrawala, 2025).
 
 ## Key Features
@@ -26,6 +29,24 @@ About speed, on the RTX 4090 desktop it generates at a speed of 2.5 seconds/fram
 In any case, you will directly see the generated frames since it is next-frame(-section) prediction. So you will get lots of visual feedback before the entire video is generated. The video usually generates from reverse.
 
 ## Installation
+
+### Using Docker (Recommended)
+
+For the easiest setup, use our Docker image:
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/ai-video-generator.git
+cd ai-video-generator
+
+# Run with docker-compose
+cd docker
+docker-compose up -d
+```
+
+For more details on Docker setup, see [Docker Documentation](docker/README.md).
+
+### Manual Installation
 
 On a Debian / Ubuntu system, install dev dependencies:
 

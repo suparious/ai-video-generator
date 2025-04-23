@@ -35,7 +35,7 @@ echo "HF_TOKEN: ${HF_TOKEN:+set (value hidden)}"
 
 # Set up Python path at runtime
 echo "Setting up Python path..."
-python -c "import setup_python_path"
+python -c "import sys; sys.path.append('/app/scripts'); import setup_python_path"
 
 # Verify environment (can be commented out once confirmed working)
 echo "Verifying Python environment..."
