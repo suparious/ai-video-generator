@@ -1,0 +1,38 @@
+services:
+  ai-video-generator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ai-video-generator:latest
+    container_name: ai-video-generator
+    restart: unless-stopped
+    ports:
+      - "7860:7860"
+    volumes:
+      # Mount the outputs directory to persist generated videos
+      - ./outputs:/app/outputs
+      # Mount the HF cache directory to avoid downloading models on every run
+      - ./hf_download:/app/hf_download
+      # Optionally mount the static directory for custom CSS
+      - ./static:/app/static
+    environment:
+      # Set environment variable to use the mounted HF cache
+      - HF_HOME=/app/hf_download
+      # Pass through Hugging Face token from host if available
+      - HF_TOKEN=${HF_TOKEN:-}
+      # Explicitly disable ALL offline modes for HuggingFace
+      - HF_HUB_OFFLINE=0
+      - TRANSFORMERS_OFFLINE=0
+      - DIFFUSERS_OFFLINE=0
+      # Optional: control CUDA memory management
+      - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    # You can customize the Gradio server parameters here if needed
+    # The entrypoint script will set up environment variables before running this command
+    command: python demo_gradio.py --server 0.0.0.0 --port 7860

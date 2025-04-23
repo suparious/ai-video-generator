@@ -4,6 +4,16 @@ This document provides solutions for common issues you might encounter when usin
 
 ## General Issues
 
+### HuggingFace Hub Offline Mode Issues
+
+**Symptoms**: Error message similar to: `HF login failed: Cannot reach https://huggingface.co/api/whoami-v2: offline mode is enabled.`
+
+**Solutions**:
+- See the dedicated guide: [HF_OFFLINE_TROUBLESHOOTING.md](./HF_OFFLINE_TROUBLESHOOTING.md)
+- Ensure `HF_HUB_OFFLINE=0` is set in your docker-compose.yml environment section
+- Rebuild your Docker container with `docker compose build` and restart with `docker compose up -d`
+- If using the Docker setup, the latest version includes fixes for this issue
+
 ### Application Won't Start
 
 **Symptoms**: Error when running `python demo_gradio.py`
