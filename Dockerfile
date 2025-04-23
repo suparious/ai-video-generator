@@ -112,6 +112,7 @@ COPY . /app/
 RUN mkdir -p /app/outputs /app/hf_download /app/static
 
 # Install HuggingFace Hub CLI
+RUN unset HF_HUB_OFFLINE
 RUN pip install huggingface_hub[cli]
 
 # Expose port for Gradio
