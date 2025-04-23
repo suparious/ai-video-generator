@@ -99,6 +99,7 @@ ENV PATH="/root/.pyenv/bin:/root/.pyenv/shims:/app/venv/bin:$PATH"
 ENV HF_HOME=/app/hf_download \
     TRANSFORMERS_OFFLINE=1 \
     DIFFUSERS_OFFLINE=1 \
+    HF_HUB_OFFLINE=0 \
     PATH="/usr/local/cuda/bin:${PATH}" \
     LD_LIBRARY_PATH="/usr/local/cuda/lib64:${LD_LIBRARY_PATH}"
 
@@ -112,11 +113,18 @@ COPY . /app/
 RUN mkdir -p /app/outputs /app/hf_download /app/static
 
 # Install HuggingFace Hub CLI
-RUN unset HF_HUB_OFFLINE
+ENV HF_HUB_OFFLINE=0
 RUN pip install huggingface_hub[cli]
 
 # Expose port for Gradio
 EXPOSE 7860
 
+# Copy entrypoint script and make it executable
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
+
+# Set entrypoint to ensure environment variables are properly set
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+
 # Default command to run the application
-ENTRYPOINT ["python", "demo_gradio.py", "--server", "0.0.0.0", "--port", "7860"]
+CMD ["python", "demo_gradio.py", "--server", "0.0.0.0", "--port", "7860"]

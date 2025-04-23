@@ -20,6 +20,8 @@ services:
       - HF_HOME=/app/hf_download
       # Pass through Hugging Face token from host if available
       - HF_TOKEN=${HF_TOKEN:-}
+      # Explicitly disable offline mode for HuggingFace Hub
+      - HF_HUB_OFFLINE=0
       # Optional: control CUDA memory management
       - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128
     deploy:
@@ -30,4 +32,5 @@ services:
               count: all
               capabilities: [gpu]
     # You can customize the Gradio server parameters here if needed
+    # The entrypoint script will set up environment variables before running this command
     command: python demo_gradio.py --server 0.0.0.0 --port 7860
