@@ -20,8 +20,10 @@ services:
       - HF_HOME=/app/hf_download
       # Pass through Hugging Face token from host if available
       - HF_TOKEN=${HF_TOKEN:-}
-      # Explicitly disable offline mode for HuggingFace Hub
+      # Explicitly disable ALL offline modes for HuggingFace
       - HF_HUB_OFFLINE=0
+      - TRANSFORMERS_OFFLINE=0
+      - DIFFUSERS_OFFLINE=0
       # Optional: control CUDA memory management
       - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128
     deploy:
