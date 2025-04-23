@@ -96,10 +96,11 @@ COPY --from=builder /app/venv /app/venv
 # Set up Python environment
 ENV PYENV_ROOT="/root/.pyenv"
 ENV PATH="/root/.pyenv/bin:/root/.pyenv/shims:/app/venv/bin:$PATH"
-ENV PYTHONPATH="/app"
+ENV PYTHONPATH="/app:/app/venv/lib/python3.13/site-packages:${PYTHONPATH}"
 
-# Create symlinks to ensure Python can find libraries
-RUN ln -sf /app/venv/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages || true
+# Create system directories and symlinks to ensure Python can find libraries
+RUN mkdir -p /usr/local/lib/python3.13 && \
+    ln -sf /app/venv/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
 
 # Don't attempt to download HF models in Docker build
 ENV HF_HOME=/app/hf_download \
@@ -127,7 +128,8 @@ EXPOSE 7860
 
 # Copy entrypoint script and make it executable
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN chmod +x /app/docker-entrypoint.sh
+COPY verify_environment.py /app/verify_environment.py
+RUN chmod +x /app/docker-entrypoint.sh /app/verify_environment.py
 
 # Set entrypoint to ensure environment variables are properly set
 ENTRYPOINT ["/app/docker-entrypoint.sh"]

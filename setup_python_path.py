@@ -21,6 +21,20 @@ def setup_python_path():
         else:
             print(f"Warning: Site packages directory {site_packages} not found")
             
+            # Try different directory structures that might exist in Docker
+            alternative_paths = [
+                os.path.join(venv_path, 'lib', 'python3', 'site-packages'),
+                os.path.join(venv_path, 'lib', 'site-packages'),
+                os.path.join(venv_path, 'lib64', f'python{python_version}', 'site-packages'),
+                os.path.join('/usr/local/lib', f'python{python_version}', 'site-packages'),
+                os.path.join('/usr/local/lib', 'site-packages')
+            ]
+            
+            for alt_path in alternative_paths:
+                if os.path.exists(alt_path):
+                    sys.path.insert(0, alt_path)
+                    print(f"Added alternative path {alt_path} to Python path")
+            
             # Try to locate site-packages through other means
             all_site_packages = site.getsitepackages()
             print(f"Available site-packages: {all_site_packages}")

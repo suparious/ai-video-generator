@@ -13,7 +13,11 @@ unset HF_HUB_OFFLINE
 
 # ========== IMPORTANT: SET PYTHON ENVIRONMENT ==========
 # Make sure Python can find installed packages
-export PYTHONPATH="/app:${PYTHONPATH}"
+export PYTHONPATH="/app:/app/venv/lib/python3.13/site-packages:${PYTHONPATH}"
+
+# Add any Python version-specific paths for systems with different Python versions
+PYTHON_VERSION=$(python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+export PYTHONPATH="/app/venv/lib/python${PYTHON_VERSION}/site-packages:${PYTHONPATH}"
 
 # Verify Python path and venv is properly set up
 echo "Python version and environment:"
@@ -32,6 +36,10 @@ echo "HF_TOKEN: ${HF_TOKEN:+set (value hidden)}"
 # Set up Python path at runtime
 echo "Setting up Python path..."
 python -c "import setup_python_path"
+
+# Verify environment (can be commented out once confirmed working)
+echo "Verifying Python environment..."
+python verify_environment.py
 
 # Run the provided command with the correct Python path
 echo "Running command: $@"
