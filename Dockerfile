@@ -79,6 +79,8 @@ ENV PYTHONUNBUFFERED=1 \
 # Install runtime dependencies only
 RUN apt-get update && apt-get install -y \
     python3-minimal \
+    python3-dev \
+    python3-pip \
     ffmpeg \
     libavcodec-dev \
     libavformat-dev \
@@ -94,6 +96,10 @@ COPY --from=builder /app/venv /app/venv
 # Set up Python environment
 ENV PYENV_ROOT="/root/.pyenv"
 ENV PATH="/root/.pyenv/bin:/root/.pyenv/shims:/app/venv/bin:$PATH"
+ENV PYTHONPATH="/app"
+
+# Create symlinks to ensure Python can find libraries
+RUN ln -sf /app/venv/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages || true
 
 # Don't attempt to download HF models in Docker build
 ENV HF_HOME=/app/hf_download \
